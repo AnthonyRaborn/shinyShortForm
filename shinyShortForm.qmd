@@ -1,0 +1,418 @@
+---
+title: "Shiny Short Form"
+author: "Anthony W. Raborn"
+format: dashboard
+server: shiny
+---
+
+
+```{r}
+#| context: setup
+library(shiny)
+require(bslib)
+require(ShortForm)
+require(psych)
+require(future)
+require(promises)
+# Set up future for async execution
+plan(multisession, workers = 2)
+
+sim_model <- "
+f1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
+f2 =~ x11 + x12 + x13 + x14 + x15 + x16 + x17 + x18 + x19 + x20
+f3 =~ x21 + x22 + x23 + x24 + x25 + x26 + x27 + x28 + x29 + x30"
+
+sim_data <-
+  cbind(
+    psych::sim.rasch(nvar = 10)$items, #psych::sim.rasch(nvar = 5)$items,
+    psych::sim.rasch(nvar = 10)$items, #psych::sim.rasch(nvar = 5)$items,
+    psych::sim.rasch(nvar = 10)$items#, psych::sim.rasch(nvar = 5)$items
+  )
+
+colnames(sim_data) = paste0("x", 1:30)
+
+debug = FALSE
+```
+
+## {.sidebar}
+
+```{r}
+#| label: algorithm-selection
+
+tagList(
+    h3("Algorithm Options"),
+    input_task_button(
+        id = "run_algorithm",
+        label = "Run Selected Algorithm",
+        icon = icon("hourglass-start")
+    ),
+    selectInput(
+        inputId = 'algorithm', label = "Select the ShortForm algorithm you wish to use",
+        choices = c("Ant Colony Optimization", "Simulated Annealing", "Tabu Search")
+    ),
+    uiOutput('algorithm_ui')
+)
+
+```
+
+```{r}
+#| context: server
+#| label: contextual-ui-selection
+
+output$algorithm_ui <- renderUI({
+    switch(input$algorithm,
+    "Ant Colony Optimization" = tagList(
+        numericInput('ants_value', "Number of Ants", 5, min = 5, max = 100, step = 5),
+        numericInput('evaporation_value', "Evaporation (between 0 and 1)", 0.9, min = 0, max = 1, step = .01),
+        numericInput('steps_value', "Steps (stopping rule)", value = 5, min = 1, max = 50, step = 1),
+        numericInput("iperf_value1", "Maximum Items to Retain for Factor 1", value = 5, min = 2, max = 9, step = 1),
+        numericInput("iperf_value2", "Maximum Items to Retain for Factor 2", value = 5, min = 2, max = 9, step = 1),
+        numericInput("iperf_value3", "Maximum Items to Retain for Factor 3", value = 5, min = 2, max = 9, step = 1),
+        selectInput('pheromone_input', "Select Pheromone Type", choices = c("gamma", "beta", "regression", "variance"), selected = "gamma"),
+        numericInput('maxrun_value', "Maximum Runs", 100, min = 1, max = 100000, step = 1),
+        #selectInput('parallel_value', "Run ants in parallel?", choices = c("TRUE", "FALSE"), selected = "TRUE")
+        selectInput('plot_choice', "Which output plot to view?", choices = c("pheromone", "gamma", "beta", "variance"))
+    ),
+    "Simulated Annealing" = tagList(
+        numericInput("maxSteps_value", "Maximum Steps (Runtime)", 50, min = 1, max = 10000, step = 1),
+        selectInput("temperature_choice", "Temperature Function", choices = c("linear", "quadratic", "logistic"), selected = "linear"),
+        numericInput("maxChanges_value", "Maximum Changes to Model per Step", 2, min = 2, max = 10, step = 1),
+        numericInput("maximumConsecutive_value", "Maximum Steps in a Row with Same Model Selected", 5, min = 1, max = 100, step = 1),
+        numericInput("maxItems_value1", "Maximum Items to Retain for Factor 1", value = 5, min = 2, max = 9, step = 1),
+        numericInput("maxItems_value2", "Maximum Items to Retain for Factor 2", value = 5, min = 2, max = 9, step = 1),
+        numericInput("maxItems_value3", "Maximum Items to Retain for Factor 3", value = 5, min = 2, max = 9, step = 1),
+        #numericInput("setChains_value", "Select Number of Chains (>1 Runs Code in Parallel)", 2, min = 1, max = 4)
+    ),
+    "Tabu Search" = tagList(
+        numericInput("numItems_value1", "Maximum Items to Retain for Factor 1", value = 5, min = 2, max = 9, step = 1),
+        numericInput("numItems_value2", "Maximum Items to Retain for Factor 2", value = 5, min = 2, max = 9, step = 1),
+        numericInput("numItems_value3", "Maximum Items to Retain for Factor 3", value = 5, min = 2, max = 9, step = 1),
+        numericInput("niter_value", "Number of Tabu Iterations (Runs)", 5, min = 1, max = 50, step = 1),
+        numericInput("tabusize_value", "Size of Tabu List", 5, min = 1, max = 10, step = 1),
+        #selectInput('parallel_value', "Run models in parallel?", choices = c("TRUE", "FALSE"), selected = "TRUE")
+    )
+    )
+})
+
+```
+
+## Column
+
+### Row {height=30%}
+```{r}
+#| title: Algorithm Manual Page
+
+uiOutput("algorithm_help")
+
+```
+
+```{r}
+#| context: server
+#| label: algorithm_help
+output$algorithm_help <- renderUI({
+    req(input$algorithm)
+    
+    help_file <- switch(input$algorithm,
+        "Ant Colony Optimization" = help(antcolony.lavaan, package = "ShortForm"),
+        "Simulated Annealing" = help(simulatedAnnealing, package = "ShortForm"),
+        "Tabu Search" = help(tabuShortForm, package = "ShortForm")
+    )
+    
+    if (length(help_file) == 0) {
+        return(p("Help page not found", style = "color: red;"))
+    }
+
+    html_file <- tempfile(fileext = ".html")
+    tools::Rd2HTML(utils:::.getHelpFile(help_file), out = html_file)
+        HTML(paste(readLines(html_file, warn = FALSE), collapse = "\n"))
+    })
+```
+
+```{r}
+#| title: Algorithm Output
+textOutput("status_message")
+verbatimTextOutput("algorithm_result")
+```
+
+### Row {height=70%}
+
+```{r}
+#| title: Algorithm Plot
+
+plotOutput("algorithm_plot")
+```
+
+```{r}
+#| context: server
+#| label: define-selected-algorithm
+
+algorithm_task <- ExtendedTask$new(function(choice, args) {
+
+    model <- sim_model
+    data <- sim_data
+    # if (choice == "Tabu Search") {
+    #             if (debug) cat("Running Tabu Search synchronously\n")
+                
+    #             result <- ShortForm::tabuShortForm(
+    #                 originalData = data,
+    #                 initialModel = model,
+    #                 numItems = args$numItems,
+    #                 niter = args$niter,
+    #                 tabu.size = args$tabu.size,
+    #                 lavaan.model.specs = args$lavaan.model.specs,
+    #                 parallel = FALSE,
+    #                 verbose = args$verbose
+    #             )
+                
+    #             return(promise_resolve(result))
+    #         }
+
+    future({
+            if (debug) cat("Inside promise, about to run algorithm\n")
+
+                result <- switch(
+                    choice,
+                    "Ant Colony Optimization" =
+                        ShortForm::antcolony.lavaan(
+                            data = data,
+                            ants = args$ants,
+                            evaporation = args$evaporation,
+                            antModel = model,
+                            list.items = args$list.items,
+                            full = args$full,
+                            i.per.f = args$i.per.f,
+                            factors = args$factors,
+                            steps = args$steps,
+                            pheromone.calculation = args$pheromone.calculation,
+                            max.run = args$max.run,
+                            parallel = args$parallel
+                        ),
+                    "Simulated Annealing" =
+                        ShortForm::simulatedAnnealing(
+                            initialModel = model,
+                            originalData = data,
+                            setChains = args$setChains,
+                            maxItems = args$maxItems,
+                            items = args$items,
+                            maxSteps = args$maxSteps,
+                            temperature = args$temperature,
+                            parallel = args$parallel
+                        ),
+                    'Tabu Search' =
+                        ShortForm::tabuShortForm(
+                            originalData = data,
+                            initialModel = model,
+                            numItems = args$numItems,
+                            niter = args$niter,
+                            tabu.size = args$tabu.size,
+                            lavaan.model.specs = args$lavaan.model.specs,
+                            parallel = FALSE
+                        )
+                )
+                if (debug) cat("Algorithm execution complete\n")
+            
+            if (debug) cat("Result called\n")
+                
+            return(result)
+            
+}, seed = TRUE)
+})
+```
+
+```{r}
+#| context: server
+#| label: status-message
+
+ant_frames <- list(
+  "🐜→→→ 🐧 Searching for solution...",
+  "→🐜→→ 🐧 Searching for solution...",
+  "→→🐜→ 🐧 Searching for solution...",
+  "→→→🐜 🐧 Searching for solution..."
+)
+
+annealing_frames <- list(
+  "🐧🔥🔥🔥 Searching for solution...",
+  "🔥🐧🔥🔥 Searching for solution...",
+  "🔥🔥🐧🔥 Searching for solution...",
+  "🔥🔥🔥🐧 Searching for solution..."
+)
+
+tabu_frames <- list(
+  "🗙🐧🐧🐧 Searching for solution...",
+  "🐧🗙🐧🐧 Searching for solution...",
+  "🐧🐧🗙🐧 Searching for solution...",
+  "🐧🐧🐧🗙 Searching for solution..."
+
+)
+
+animation_frames <- reactive({
+    switch(
+    input$algorithm,
+    "Ant Colony Optimization" = ant_frames,
+    "Simulated Annealing" = annealing_frames,
+    "Tabu Search" = tabu_frames,
+    ant_frames
+    )
+})
+
+current_frame <- reactiveVal(1)
+animation_running <- reactiveVal(FALSE)
+
+# Animation observer
+observe({
+    req(animation_running())
+    
+    invalidateLater(500)  # Update every 500ms
+    
+    # Cycle through frames
+    frames <- isolate(animation_frames())
+    next_frame <- isolate(current_frame()) + 1
+    if (next_frame > length(frames)) {
+        next_frame <- 1
+    }
+    current_frame(next_frame)
+    
+    # Check if task is done
+    status <- algorithm_task$status()
+    if (status %in% c("success", "error")) {
+        if (debug) cat("Stopping animation - status:", status, "\n")
+        animation_running(FALSE)
+    }
+})
+
+observe({
+    status <- algorithm_task$status()
+    if (debug) cat("Checking status to stop animation:", status, "\n")
+    if (status %in% c("success", "error")) {
+        if (debug) cat("Stopping animation\n")
+        animation_running(FALSE)
+    }
+})
+
+output$status_message <- renderText({
+        frame_idx <- current_frame()
+        is_animating <- animation_running()
+        status <- algorithm_task$status()
+    #if (debug) cat("Rendering status_message | frame:", frame_idx, "| status:", status, 
+    #    "| animation:", animation_running(), "\n")
+
+    if (is_animating) {
+        frames <- animation_frames()
+        frames[[frame_idx]]
+    } else if (status == "success") {
+        paste0(input$algorithm, " Algorithm completed successfully!")
+    } else if (status == "error") {
+        paste0(input$algorithm, " Algorithm encountered an error.")
+    } else {
+        paste0("Ready to run algorithm. Current selected algorithm: ", input$algorithm)
+    }
+})
+```
+
+```{r}
+#| context: server
+#| label: run-selected-algorithm
+observeEvent(input$run_algorithm, {
+    if (debug) cat("\n=== RUN BUTTON CLICKED ===\n")
+    if (debug) cat("Algorithm:", input$algorithm, "\n")
+    
+    req(input$algorithm)
+    if (debug) cat("Algorithm requirement passed\n")
+    
+    # Start animation
+    animation_running(TRUE)
+    current_frame(1)
+    if (debug) cat("Animation started, current_frame set to 1\n")
+    if (debug) cat("animation_running():", animation_running(), "\n")
+
+    args <- switch(
+        input$algorithm,
+        "Ant Colony Optimization" = list(
+            ants = input$ants_value,
+            evaporation = input$evaporation_value,
+            lavaan.model.specs =
+                list(estimator = "wlsmv", ordered = T),
+            list.items = list(paste0("x", 1:10), paste0("x", 11:20), paste0("x", 21:30)),
+            full = 30,
+            i.per.f = c(input$iperf_value1, input$iperf_value2, input$iperf_value3),
+            factors = c("f1", "f2", "f3"),
+            steps = input$steps_value,
+            pheromone.calculation = input$pheromone_input,
+            fit.indices = c("cfi.scaled"), 
+            fit.statistics.test = "(cfi.scaled > 0.90)", 
+            max.run = input$maxrun_value,
+            parallel = FALSE
+        ),
+        "Simulated Annealing" = list(
+            maxSteps = input$maxSteps_value,
+            temperature = input$temperature_choice,
+            maxItems = c(input$maxItems_value1, input$maxItems_value2, input$maxItems_value3),
+            maxChanges = input$maxChanges_value,
+            items = paste0("x", 1:30),
+            setChains = 1
+        ),
+        "Tabu Search" = list(
+            numItems = c(input$numItems_value1, input$numItems_value2, input$numItems_value3),
+            niter = input$niter_value,
+            tabu.size = input$tabusize_value,
+            lavaan.model.specs = list(
+                             int.ov.free = TRUE,
+                             int.lv.free = FALSE,
+                             std.lv = TRUE,
+                             auto.fix.first = FALSE,
+                             auto.fix.single = TRUE,
+                             auto.var = TRUE,
+                             auto.cov.lv.x = TRUE,
+                             auto.th = TRUE,
+                             auto.delta = TRUE,
+                             auto.cov.y = TRUE,
+                             ordered = TRUE,
+                             model.type = "cfa",
+                             estimator = "wlsmv"
+                           ),
+                parallel = FALSE
+        )
+    )
+
+    if (debug) cat("Args built successfully\n")
+    if (debug) cat("About to invoke task...\n")
+    
+    tryCatch({
+        algorithm_task$invoke(input$algorithm, args)
+        if (debug) cat("Task invoked!\n")
+        if (debug) cat("Task status immediately after invoke:", algorithm_task$status(), "\n")
+    }, error = function(e) {
+        if (debug) cat("ERROR invoking task:", e$message, "\n")
+        animation_running(FALSE)
+    })})
+
+output$algorithm_result <- renderPrint({
+    if (debug) cat("algorithm_result render called\n")
+    
+    status <- algorithm_task$status()
+    req(status == "success")
+    if (debug) cat("Status is success, getting result\n")
+    
+    result <- algorithm_task$result()
+    if (debug) cat("Result class:", class(result), "\n")
+    
+    req(result)
+    
+    summary(result)
+})
+
+output$algorithm_plot <- renderPlot({
+    if (debug) cat("algorithm_plot render called\n")
+    
+    status <- algorithm_task$status()
+    if (debug) cat("Plot - task status:", status, "\n")
+    
+    result <- algorithm_task$result()
+    if (debug) cat("Result class:", class(result), "\n")
+    req(result)
+    
+    plot_type <- input$plot_choice
+    if (debug) cat("Plot completed\n")
+    plot(result, type = plot_type)
+})
+```
