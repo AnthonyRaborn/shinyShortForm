@@ -40,6 +40,7 @@ debug = FALSE
 #| label: algorithm-selection
 
 tagList(
+    actionButton("information", "Show App Information"),
     h3("Algorithm Options"),
     input_task_button(
         id = "run_algorithm",
@@ -59,6 +60,20 @@ tagList(
 #| context: server
 #| label: contextual-ui-selection
 
+observeEvent(input$information, {
+    showModal(modalDialog(
+        title = "Information",
+        p("This shiny app demonstrates some of the functionality of the ShortForm R package using simulated binary response data. You can modify some of the parameters for the three metaheuristic algorithms included in the package and see example output, as well as browse the manual page for the selected algorithm."),
+        
+        p("Please note that the default arguments for the algorithms result in a somewhat quick runtime, but it may still take a few minutes to complete. Changing these defaults may result in longer runtimes, so please be patient!"),
+            
+        p("You can see the full documentation for the package on ", 
+        tags$a(href = "https://www.github.com/AnthonyRaborn/ShortForm", target = "_blank", rel = "no opener no referrer", "GitHub"), 
+        " or on the ",
+        tags$a(href = "https://cran.r-project.org/package=ShortForm",  target = "_blank", rel = "no opener no referrer", "CRAN page."))
+    ))
+})
+
 output$algorithm_ui <- renderUI({
     switch(input$algorithm,
     "Ant Colony Optimization" = tagList(
@@ -71,7 +86,7 @@ output$algorithm_ui <- renderUI({
         selectInput('pheromone_input', "Select Pheromone Type", choices = c("gamma", "beta", "regression", "variance"), selected = "gamma"),
         numericInput('maxrun_value', "Maximum Runs", 100, min = 1, max = 100000, step = 1),
         #selectInput('parallel_value', "Run ants in parallel?", choices = c("TRUE", "FALSE"), selected = "TRUE")
-        selectInput('plot_choice', "Which output plot to view?", choices = c("pheromone", "gamma", "beta", "variance"))
+        selectInput('plot_choice', "Which output plot to view?", choices = c("all", "pheromone", "gamma", "beta", "variance"))
     ),
     "Simulated Annealing" = tagList(
         numericInput("maxSteps_value", "Maximum Steps (Runtime)", 50, min = 1, max = 10000, step = 1),
