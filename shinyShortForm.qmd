@@ -113,7 +113,7 @@ output$algorithm_ui <- renderUI({
 
 ## Column
 
-### Row {height=30%}
+### Row {height=50%}
 ```{r}
 #| title: Algorithm Manual Page
 
@@ -149,7 +149,7 @@ textOutput("status_message")
 verbatimTextOutput("algorithm_result")
 ```
 
-### Row {height=70%}
+### Row {height=50%}
 
 ```{r}
 #| title: Algorithm Plot
