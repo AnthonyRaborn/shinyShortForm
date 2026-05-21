@@ -17,6 +17,7 @@ output: github_document
 
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![Codecov test coverage](https://codecov.io/gh/AnthonyRaborn/shinyShortForm/graph/badge.svg)](https://app.codecov.io/gh/AnthonyRaborn/shinyShortForm)
 <!-- badges: end -->
 
 ## Installation

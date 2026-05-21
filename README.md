@@ -5,6 +5,10 @@
 
 <!-- badges: start -->
 
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![Codecov test
+coverage](https://codecov.io/gh/AnthonyRaborn/shinyShortForm/graph/badge.svg)](https://app.codecov.io/gh/AnthonyRaborn/shinyShortForm)
 <!-- badges: end -->
 
 ## Installation
@@ -31,18 +35,15 @@ This README has been compiled on the
 
 ``` r
 Sys.time()
-#> [1] "2026-05-21 16:11:37 EDT"
+#> [1] "2026-05-21 16:22:53 EDT"
 ```
 
 Here are the tests results and package coverage:
 
 ``` r
 devtools::check(quiet = TRUE)
-#> ── R CMD check results ────────────────────────── shinyShortForm 0.0.0.9000 ────
-#> Duration: 8.8s
-#> 
-#> ❯ checking tests ...
-#>   See below...
+#> ── R CMD check results ───────────────────────────────── shinyShortForm 0.0.0.9000 ────
+#> Duration: 11.3s
 #> 
 #> ❯ checking for portable file names ... NOTE
 #>   Found the following non-portable file paths:
@@ -65,61 +66,19 @@ devtools::check(quiet = TRUE)
 #>   Problems with news in ‘NEWS.md’:
 #>   No news entries found.
 #> 
-#> ── Test failures ───────────────────────────────────────────────── testthat ────
-#> 
-#> > # This file is part of the standard setup for testthat.
-#> > # It is recommended that you do not modify it.
-#> > #
-#> > # Where should you do additional test configuration?
-#> > # Learn more about the roles of various files in:
-#> > # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
-#> > # * https://testthat.r-lib.org/articles/special-files.html
-#> > 
-#> > library(testthat)
-#> > library(shinyShortForm)
-#> > 
-#> > test_check("shinyShortForm")
-#> Error in `test_dir()`:
-#> ! No test files found.
-#> Backtrace:
-#>     ▆
-#>  1. └─testthat::test_check("shinyShortForm")
-#>  2.   └─testthat::test_dir("testthat", package = package, reporter = reporter, ..., load_package = "installed")
-#>  3.     └─cli::cli_abort("No test files found.")
-#>  4.       └─rlang::abort(...)
-#> Execution halted
-#> 
-#> 1 error ✖ | 0 warnings ✔ | 3 notes ✖
-#> Error:
-#> ! R CMD check found ERRORs
+#> 0 errors ✔ | 0 warnings ✔ | 3 notes ✖
 ```
 
 ``` r
 covr::package_coverage()
-#> Error:
-#> ! Failure in `/private/var/folders/kh/k1xtd7xd7qdcf0tk3yj8c1_80000gn/T/RtmpnqJVog/R_LIBS4a573cc4187a/shinyShortForm/shinyShortForm-tests/testthat.Rout.fail`
-#> .start()' for an HTML browser interface to help.
-#> Type 'q()' to quit R.
-#> 
-#> > # This file is part of the standard setup for testthat.
-#> > # It is recommended that you do not modify it.
-#> > #
-#> > # Where should you do additional test configuration?
-#> > # Learn more about the roles of various files in:
-#> > # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
-#> > # * https://testthat.r-lib.org/articles/special-files.html
-#> > 
-#> > library(testthat)
-#> > library(shinyShortForm)
-#> > 
-#> > test_check("shinyShortForm")
-#> Error in `test_dir()`:
-#> ! No test files found.
-#> Backtrace:
-#>     ▆
-#>  1. └─testthat::test_check("shinyShortForm")
-#>  2.   └─testthat::test_dir("testthat", package = package, reporter = reporter, ..., load_package = "installed")
-#>  3.     └─cli::cli_abort("No test files found.")
-#>  4.       └─rlang::abort(...)
-#> Execution halted
+#> shinyShortForm Coverage: 8.53%
+#> R/app_config.R: 0.00%
+#> R/app_ui.R: 0.00%
+#> R/global.R: 0.00%
+#> R/golem_utils_server.R: 0.00%
+#> R/golem_utils_ui.R: 0.00%
+#> R/run_app.R: 0.00%
+#> R/mod_algorithm_ui.R: 100.00%
+#> R/mod_results.R: 100.00%
+#> R/mod_task_runner.R: 100.00%
 ```
