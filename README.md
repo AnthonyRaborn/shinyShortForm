@@ -31,7 +31,7 @@ This README has been compiled on the
 
 ``` r
 Sys.time()
-#> [1] "2026-05-21 13:12:33 EDT"
+#> [1] "2026-05-21 13:14:24 EDT"
 ```
 
 Here are the tests results and package coverage:
@@ -43,7 +43,7 @@ devtools::check(quiet = TRUE)
 #> ✖ `check()` will not re-document this package.
 #> ℹ Do you need to re-run `document()`?
 #> ── R CMD check results ────────────────────────── shinyShortForm 0.0.0.9000 ────
-#> Duration: 8.6s
+#> Duration: 9.1s
 #> 
 #> ❯ checking tests ...
 #>   See below...
