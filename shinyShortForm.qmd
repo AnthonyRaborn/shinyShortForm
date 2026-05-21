@@ -1,6 +1,7 @@
 ---
 title: "Shiny Short Form"
 author: "Anthony W. Raborn"
+affiliation: "Raborn Decision Sciences"
 format: dashboard
 server: shiny
 ---
