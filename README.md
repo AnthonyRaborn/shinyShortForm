@@ -31,19 +31,15 @@ This README has been compiled on the
 
 ``` r
 Sys.time()
-#> [1] "2026-05-21 13:14:24 EDT"
+#> [1] "2026-05-21 16:11:37 EDT"
 ```
 
 Here are the tests results and package coverage:
 
 ``` r
 devtools::check(quiet = TRUE)
-#> ══ Documenting ═════════════════════════════════════════════════════════════════
-#> ℹ Installed roxygen2 version (8.0.0) doesn't match declared (7.1.1)
-#> ✖ `check()` will not re-document this package.
-#> ℹ Do you need to re-run `document()`?
 #> ── R CMD check results ────────────────────────── shinyShortForm 0.0.0.9000 ────
-#> Duration: 9.1s
+#> Duration: 8.8s
 #> 
 #> ❯ checking tests ...
 #>   See below...
@@ -100,6 +96,30 @@ devtools::check(quiet = TRUE)
 
 ``` r
 covr::package_coverage()
-#> Error in `loadNamespace()`:
-#> ! there is no package called 'covr'
+#> Error:
+#> ! Failure in `/private/var/folders/kh/k1xtd7xd7qdcf0tk3yj8c1_80000gn/T/RtmpnqJVog/R_LIBS4a573cc4187a/shinyShortForm/shinyShortForm-tests/testthat.Rout.fail`
+#> .start()' for an HTML browser interface to help.
+#> Type 'q()' to quit R.
+#> 
+#> > # This file is part of the standard setup for testthat.
+#> > # It is recommended that you do not modify it.
+#> > #
+#> > # Where should you do additional test configuration?
+#> > # Learn more about the roles of various files in:
+#> > # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
+#> > # * https://testthat.r-lib.org/articles/special-files.html
+#> > 
+#> > library(testthat)
+#> > library(shinyShortForm)
+#> > 
+#> > test_check("shinyShortForm")
+#> Error in `test_dir()`:
+#> ! No test files found.
+#> Backtrace:
+#>     ▆
+#>  1. └─testthat::test_check("shinyShortForm")
+#>  2.   └─testthat::test_dir("testthat", package = package, reporter = reporter, ..., load_package = "installed")
+#>  3.     └─cli::cli_abort("No test files found.")
+#>  4.       └─rlang::abort(...)
+#> Execution halted
 ```
