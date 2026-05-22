@@ -9,6 +9,7 @@
 stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![Codecov test
 coverage](https://codecov.io/gh/AnthonyRaborn/shinyShortForm/graph/badge.svg)](https://app.codecov.io/gh/AnthonyRaborn/shinyShortForm)
+[![R-CMD-check](https://github.com/AnthonyRaborn/shinyShortForm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/AnthonyRaborn/shinyShortForm/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Installation
@@ -16,7 +17,8 @@ coverage](https://codecov.io/gh/AnthonyRaborn/shinyShortForm/graph/badge.svg)](h
 You can install the development version of `{shinyShortForm}` like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+# require(devtools)
+devtools::install_github("AnthonyRaborn/shinyShortForm")
 ```
 
 ## Run
@@ -29,13 +31,19 @@ shinyShortForm::run_app()
 
 ## About
 
+This shiny app demonstrates some of the functionality of the ShortForm R
+package using simulated binary response data. You can modify some of the
+parameters for the three metaheuristic algorithms included in the
+package and see example output, as well as browse the manual page for
+the selected algorithm.
+
 You are reading the doc about version : 0.0.0.9000
 
 This README has been compiled on the
 
 ``` r
 Sys.time()
-#> [1] "2026-05-21 16:22:53 EDT"
+#> [1] "2026-05-21 20:10:56 EDT"
 ```
 
 Here are the tests results and package coverage:
@@ -43,7 +51,7 @@ Here are the tests results and package coverage:
 ``` r
 devtools::check(quiet = TRUE)
 #> ── R CMD check results ───────────────────────────────── shinyShortForm 0.0.0.9000 ────
-#> Duration: 11.3s
+#> Duration: 14.4s
 #> 
 #> ❯ checking for portable file names ... NOTE
 #>   Found the following non-portable file paths:
@@ -59,8 +67,8 @@ devtools::check(quiet = TRUE)
 #> 
 #> ❯ checking top-level files ... NOTE
 #>   Non-standard files/directories found at top level:
-#>     ‘assets’ ‘rsconnect’ ‘shinyShortForm.html’ ‘shinyShortForm.qmd’
-#>     ‘shinyShortForm_files’
+#>     ‘README.html’ ‘assets’ ‘rsconnect’ ‘shinyShortForm.html’
+#>     ‘shinyShortForm.qmd’ ‘shinyShortForm_files’
 #> 
 #> ❯ checking package subdirectories ... NOTE
 #>   Problems with news in ‘NEWS.md’:

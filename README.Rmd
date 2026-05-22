@@ -18,14 +18,16 @@ output: github_document
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![Codecov test coverage](https://codecov.io/gh/AnthonyRaborn/shinyShortForm/graph/badge.svg)](https://app.codecov.io/gh/AnthonyRaborn/shinyShortForm)
+[![R-CMD-check](https://github.com/AnthonyRaborn/shinyShortForm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/AnthonyRaborn/shinyShortForm/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Installation
 
 You can install the development version of `{shinyShortForm}` like so:
 
-```{r}
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+```{r, eval = FALSE}
+# require(devtools)
+devtools::install_github("AnthonyRaborn/shinyShortForm")
 ```
 
 ## Run
@@ -37,6 +39,8 @@ shinyShortForm::run_app()
 ```
 
 ## About
+
+This shiny app demonstrates some of the functionality of the ShortForm R package using simulated binary response data. You can modify some of the parameters for the three metaheuristic algorithms included in the package and see example output, as well as browse the manual page for the selected algorithm.
 
 You are reading the doc about version : `r golem::pkg_version()`
 
