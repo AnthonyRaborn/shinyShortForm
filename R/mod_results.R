@@ -76,7 +76,19 @@ mod_results_server <- function(id, result, algorithm, args) {
       }
 
       html_file <- tempfile(fileext = ".html")
-      tools::Rd2HTML(utils:::.getHelpFile(help_file), out = html_file)
+      rd <- tryCatch(
+        fetchRdDB(
+          file.path(system.file("help", package = "ShortForm"), "ShortForm"),
+          key = topic
+        ),
+        error = function(e) NULL
+      )
+
+      if (is.null(rd)) {
+        return(p("Help page could not be rendered.", style = "color: red;"))
+      }
+
+      tools::Rd2HTML(rd, out = html_file)
       HTML(paste(readLines(html_file, warn = FALSE), collapse = "\n"))
     })
 
