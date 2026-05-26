@@ -14,7 +14,10 @@ Imports:
     future,
     golem,
     psych,
-    shiny
+    shiny,
+    logger,
+    ShortForm,
+    utils
 Suggests: 
     knitr,
     rmarkdown,
