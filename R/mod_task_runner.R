@@ -78,15 +78,15 @@ mod_task_runner_server <- function(id, algorithm, args, run_trigger) {
 
     # -- ExtendedTask -------------------------------------------------------
     # Receives plain values only -- no reactives cross the future boundary.
-    algorithm_task <- ExtendedTask$new(function(choice, run_args) {
+    algorithm_task <- ExtendedTask$new(function(choice, run_args, sim_data, sim_model) {
       future::future({
         result <- switch(
           choice,
           "Ant Colony Optimization" = ShortForm::antcolony.lavaan(
-            data                  = SIM_DATA,
+            data                  = sim_data,
             ants                  = run_args$ants,
             evaporation           = run_args$evaporation,
-            antModel              = SIM_MODEL,
+            antModel              = sim_model,
             list.items            = run_args$list.items,
             full                  = run_args$full,
             i.per.f               = run_args$i.per.f,
@@ -99,8 +99,8 @@ mod_task_runner_server <- function(id, algorithm, args, run_trigger) {
             parallel              = run_args$parallel
           ),
           "Simulated Annealing" = ShortForm::simulatedAnnealing(
-            initialModel       = SIM_MODEL,
-            originalData       = SIM_DATA,
+            initialModel       = sim_model,
+            originalData       = sim_data,
             setChains          = run_args$setChains,
             maxItems           = run_args$maxItems,
             items              = run_args$items,
@@ -110,8 +110,8 @@ mod_task_runner_server <- function(id, algorithm, args, run_trigger) {
             parallel           = run_args$parallel
           ),
           "Tabu Search" = ShortForm::tabuShortForm(
-            originalData       = SIM_DATA,
-            initialModel       = SIM_MODEL,
+            originalData       = sim_data,
+            initialModel       = sim_model,
             numItems           = run_args$numItems,
             niter              = run_args$niter,
             tabu.size          = run_args$tabu.size,
@@ -150,7 +150,7 @@ mod_task_runner_server <- function(id, algorithm, args, run_trigger) {
       current_frame(1L)
 
       tryCatch(
-        algorithm_task$invoke(algorithm(), current_args),
+        algorithm_task$invoke(algorithm(), current_args, SIM_DATA, SIM_MODEL),
         error = function(e) {
           animation_active(FALSE)
           logger::log_error("Task invocation failed: {e$message}")
