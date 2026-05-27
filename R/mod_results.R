@@ -14,11 +14,7 @@
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
-# Suppress R CMD CHECK note for tools:::fetchRdDB.
-# This internal function is the only reliable way to retrieve compiled Rd
-# objects from an installed package's help database at runtime.
-# See: https://github.com/wch/r-source/blob/trunk/src/library/tools/R/Rd.R
-utils::globalVariables("fetchRdDB")
+
 # Map from algorithm display name to S4 class name.
 # Used to dispatch S4 methods correctly.
 .ALGO_CLASS <- c(
@@ -65,23 +61,16 @@ utils::globalVariables("fetchRdDB")
   }
 }
 
-#' Render a ShortForm function help page as HTML
+#' Render a ShortForm function help page as HTML iframe
 #' @noRd
 .render_help_html <- function(topic) {
-  help_dir <- system.file("help", package = "ShortForm")
-  if (!nzchar(help_dir)) return(NULL)
-
-  db_path <- file.path(help_dir, "ShortForm")
-
-  rd <- tryCatch(
-    tools:::fetchRdDB(db_path, key = topic),
-    error = function(e) NULL
+  url <- paste0("https://rdrr.io/cran/ShortForm/man/", topic, ".html")
+  tags$iframe(
+    src    = url,
+    width  = "100%",
+    height = "600px",
+    style  = "border: none;"
   )
-  if (is.null(rd)) return(NULL)
-
-  html_file <- tempfile(fileext = ".html")
-  tools::Rd2HTML(rd, out = html_file)
-  paste(readLines(html_file, warn = FALSE), collapse = "\n")
 }
 
 # ---------------------------------------------------------------------------
@@ -125,6 +114,9 @@ mod_results_ui <- function(id) {
 #' @param args Reactive named list of algorithm arguments. Used to extract
 #'   plot_choice for ACO without needing a separate input.
 #' @noRd
+#' @importFrom graphics plot.new text
+#' @importFrom methods signature
+#' @import tools 
 mod_results_server <- function(id, result, algorithm, args) {
   stopifnot(is.reactive(result))
   stopifnot(is.reactive(algorithm))
@@ -138,21 +130,7 @@ mod_results_server <- function(id, result, algorithm, args) {
     output$algorithm_help <- renderUI({
       req(algorithm())
       topic <- .ALGO_HELP_TOPIC[[algorithm()]]
-      html  <- .render_help_html(topic)
-
-      if (is.null(html)) {
-        p(
-          "Help page could not be rendered. View it at: ",
-          tags$a(
-            href   = paste0("https://rdrr.io/cran/ShortForm/man/", topic, ".html"),
-            target = "_blank",
-            rel    = "noopener noreferrer",
-            paste0("rdrr.io/cran/ShortForm/man/", topic)
-          )
-        )
-      } else {
-        HTML(html)
-      }
+      .render_help_html(topic)
     })
 
     # -- Summary output -----------------------------------------------------
