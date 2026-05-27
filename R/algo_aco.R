@@ -89,8 +89,8 @@ aco_args <- function(input) {
     list.items            = FACTOR_ITEM_LIST,
     full                  = N_ITEMS,
     factors               = FACTOR_NAMES,
-    fit.indices           = "cfi.scaled",
-    fit.statistics.test   = "(cfi.scaled > 0.90)",
+    fit.indices           = "cfi",
+    fit.statistics.test   = "(cfi > 0.90)",
     lavaan.model.specs    = list(estimator = "wlsmv", ordered = TRUE),
     parallel              = FALSE
   )
