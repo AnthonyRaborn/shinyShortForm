@@ -2,14 +2,87 @@
 #
 # Module: Results Display
 #
-# Three tabs matching the qmd layout:
-#   - "Algorithm Output"  -> status message + verbatim summary (verbatimTextOutput)
-#   - "Algorithm Plot"    -> plotOutput
-#   - "Algorithm Manual"  -> rendered help page (uiOutput)
-#
-# The plot_choice for ACO comes from the args list built by aco_args(), not
-# from a separate input here. This matches the qmd behaviour where plot_choice
-# was passed as part of args and consumed in the render.
+# ShortForm (>= 0.5.0) returns S4 objects: ACO, SA, TS.
+# S4 dispatch rules:
+#   - summary(res) -> works via S4 summary,<class>-method, but renderPrint
+#     captures print output, not the invisible return value, so we use
+#     methods::show() which is the S4 print method for these classes.
+#   - plot(res)    -> base plot() does NOT dispatch S4 methods; must use
+#     methods::getMethod("plot", ...) or the explicit S4 signature call.
+#   - help pages   -> use fetchRdDB() with function topic names, not class names.
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+# Suppress R CMD CHECK note for tools:::fetchRdDB.
+# This internal function is the only reliable way to retrieve compiled Rd
+# objects from an installed package's help database at runtime.
+# See: https://github.com/wch/r-source/blob/trunk/src/library/tools/R/Rd.R
+utils::globalVariables("fetchRdDB")
+# Map from algorithm display name to S4 class name.
+# Used to dispatch S4 methods correctly.
+.ALGO_CLASS <- c(
+  "Ant Colony Optimization" = "ACO",
+  "Simulated Annealing"     = "SA",
+  "Tabu Search"             = "TS"
+)
+
+# Map from algorithm display name to help topic (function name in ShortForm).
+.ALGO_HELP_TOPIC <- c(
+  "Ant Colony Optimization" = "antcolony.lavaan",
+  "Simulated Annealing"     = "simulatedAnnealing",
+  "Tabu Search"             = "tabuShortForm"
+)
+
+#' Render an S4 ShortForm result object via its show() method
+#' @noRd
+.show_result <- function(res) {
+  methods::show(res)
+}
+
+#' Call the S4 plot method for a ShortForm result object
+#' @noRd
+.plot_result <- function(res, plot_type = NULL) {
+  s4_class <- class(res)
+  plot_method <- tryCatch(
+    methods::getMethod("plot", signature(s4_class, "ANY")),
+    error = function(e) NULL
+  )
+  if (is.null(plot_method)) {
+    # Fallback: try without second signature arg
+    plot_method <- tryCatch(
+      methods::getMethod("plot", signature(s4_class)),
+      error = function(e) NULL
+    )
+  }
+  if (is.null(plot_method)) {
+    stop("No S4 plot method found for class: ", s4_class)
+  }
+  if (!is.null(plot_type)) {
+    plot_method(res, plot_type)
+  } else {
+    plot_method(res)
+  }
+}
+
+#' Render a ShortForm function help page as HTML
+#' @noRd
+.render_help_html <- function(topic) {
+  help_dir <- system.file("help", package = "ShortForm")
+  if (!nzchar(help_dir)) return(NULL)
+
+  db_path <- file.path(help_dir, "ShortForm")
+
+  rd <- tryCatch(
+    tools:::fetchRdDB(db_path, key = topic),
+    error = function(e) NULL
+  )
+  if (is.null(rd)) return(NULL)
+
+  html_file <- tempfile(fileext = ".html")
+  tools::Rd2HTML(rd, out = html_file)
+  paste(readLines(html_file, warn = FALSE), collapse = "\n")
+}
 
 # ---------------------------------------------------------------------------
 # UI
@@ -47,7 +120,7 @@ mod_results_ui <- function(id) {
 #' Results Module - Server Side
 #'
 #' @param id Module namespace ID.
-#' @param result Reactive returning the algorithm result object, or NULL.
+#' @param result Reactive returning the S4 algorithm result object, or NULL.
 #' @param algorithm Reactive string: selected algorithm name.
 #' @param args Reactive named list of algorithm arguments. Used to extract
 #'   plot_choice for ACO without needing a separate input.
@@ -60,60 +133,57 @@ mod_results_server <- function(id, result, algorithm, args) {
   moduleServer(id, function(input, output, session) {
 
     # -- Help page ----------------------------------------------------------
-    # Matches the qmd algorithm_help chunk exactly.
+    # Rendered whenever the algorithm selection changes, not on result.
+    # Uses fetchRdDB() to avoid utils:::.getHelpFile and the CMD CHECK warning.
     output$algorithm_help <- renderUI({
       req(algorithm())
+      topic <- .ALGO_HELP_TOPIC[[algorithm()]]
+      html  <- .render_help_html(topic)
 
-      help_file <- switch(
-        algorithm(),
-        "Ant Colony Optimization" = utils::help(antcolony.lavaan,   package = "ShortForm"),
-        "Simulated Annealing"     = utils::help(simulatedAnnealing, package = "ShortForm"),
-        "Tabu Search"             = utils::help(tabuShortForm,      package = "ShortForm")
-      )
-
-      if (length(help_file) == 0) {
-        return(p("Help page not found.", style = "color: red;"))
+      if (is.null(html)) {
+        p(
+          "Help page could not be rendered. View it at: ",
+          tags$a(
+            href   = paste0("https://rdrr.io/cran/ShortForm/man/", topic, ".html"),
+            target = "_blank",
+            rel    = "noopener noreferrer",
+            paste0("rdrr.io/cran/ShortForm/man/", topic)
+          )
+        )
+      } else {
+        HTML(html)
       }
-
-      html_file <- tempfile(fileext = ".html")
-      rd <- tryCatch(
-        fetchRdDB(
-          file.path(system.file("help", package = "ShortForm"), "ShortForm"),
-          key = topic
-        ),
-        error = function(e) NULL
-      )
-
-      if (is.null(rd)) {
-        return(p("Help page could not be rendered.", style = "color: red;"))
-      }
-
-      tools::Rd2HTML(rd, out = html_file)
-      HTML(paste(readLines(html_file, warn = FALSE), collapse = "\n"))
     })
 
     # -- Summary output -----------------------------------------------------
-    # Matches the qmd algorithm_result renderPrint.
+    # Uses S4 show() method, which is the correct print dispatch for ACO/SA/TS.
     output$algorithm_result <- renderPrint({
       res <- result()
       req(!is.null(res))
-      summary(res)
+      .show_result(res)
     })
 
     # -- Plot output --------------------------------------------------------
-    # plot_choice is embedded in the ACO args list.
-    # For SA and Tabu, plot() is called with no type argument.
+    # Uses S4 plot method via getMethod() to avoid base plot.default dispatch.
+    # plot_choice for ACO comes from args, not a separate input.
     output$algorithm_plot <- renderPlot({
       res <- result()
       req(!is.null(res))
 
-      if (algorithm() == "Ant Colony Optimization") {
+      plot_type <- if (algorithm() == "Ant Colony Optimization") {
         current_args <- args()
-        plot_type    <- if (!is.null(current_args)) current_args$plot_choice else "all"
-        plot(res, type = plot_type)
+        if (!is.null(current_args)) current_args$plot_choice else "all"
       } else {
-        plot(res)
+        NULL
       }
+
+      tryCatch(
+        .plot_result(res, plot_type),
+        error = function(e) {
+          plot.new()
+          text(0.5, 0.5, paste("Plot error:", e$message), cex = 0.9)
+        }
+      )
     })
   })
 }
