@@ -73,7 +73,7 @@ test_that("aco_args maps input values correctly", {
 
 test_that("aco_args fixed args are correct", {
   result <- aco_args(mock_aco_input)
-  expect_equal(result$fit.indices, "cfi.scaled")
+  expect_equal(result$fit.indices, "cfi")
   expect_equal(result$full, N_ITEMS)
   expect_equal(result$factors, FACTOR_NAMES)
 })
