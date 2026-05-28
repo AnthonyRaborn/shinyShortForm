@@ -10,6 +10,16 @@
 #' @import bslib
 #' @noRd
 app_ui <- function(request) {
+    # theming
+    light_theme <- bslib::bs_theme(
+      bootswatch = NULL,  # or a base theme if you want one
+      base_font = bslib::font_google("Atkinson Hyperlegible"),  # if applicable
+    ) |> bslib::bs_add_rules(sass::sass_file(app_sys("app/www/theme-light.scss")))
+
+    dark_theme <- bslib::bs_theme(
+      bootswatch = NULL,
+    ) |> bslib::bs_add_rules(sass::sass_file(app_sys("app/www/theme-dark.scss")))
+
   tagList(
     # golem external resources (favicon, custom CSS/JS if any)
     golem_add_external_resources(),
@@ -17,10 +27,7 @@ app_ui <- function(request) {
     bslib::page_navbar(
       title  = "shinyShortForm",
       id     = "navbar",
-      theme  = bslib::bs_theme(
-        version   = 5,
-        bootswatch = "flatly"
-      ),
+      theme  = light_theme,
       window_title = "shinyShortForm",
 
       # -- Pages -----------------------------------------------------------
@@ -32,15 +39,17 @@ app_ui <- function(request) {
       ),
 
       # Placeholder panels -- uncomment and build as you go
-      # bslib::nav_panel(
-      #   title = "Your Data",
-      #   icon  = shiny::icon("upload"),
-      #   mod_your_data_ui("your_data")
-      # ),
+      bslib::nav_panel(
+        title = "Your Data",
+        icon  = shiny::icon("upload"),
+        mod_data_upload_ui("your_data")
+      ),
 
       # -- Right-side nav items --------------------------------------------
       bslib::nav_spacer(),
-
+      bslib::nav_item(
+        bslib::input_dark_mode(id = "dark_mode", mode = "light")
+      ),
       bslib::nav_item(
         tags$a(
           href   = "https://github.com/AnthonyRaborn/shinyShortForm",
