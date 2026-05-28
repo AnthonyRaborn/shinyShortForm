@@ -64,14 +64,14 @@
 #' Render a ShortForm function help page as HTML iframe
 #' @noRd
 .render_help_html <- function(topic) {
-  url <- paste0("https://rdrr.io/cran/ShortForm/man/", topic, ".html")
-  tags$iframe(
-    src    = url,
-    width  = "100%",
-    height = "600px",
-    style  = "border: none;"
-  )
-}
+  html_file <- app_sys(paste0("app/www/help/", topic, ".html"))
+  html_text <- paste(readLines(html_file), collapse = '\n')
+
+  # Strip <html>/<head>/<body> wrapper, keep just the body content
+  body_content <- stringr::str_extract(html_text, "(?s)(?<=<body>).*(?=</body>)")
+  
+  HTML(body_content)
+  }
 
 # ---------------------------------------------------------------------------
 # UI

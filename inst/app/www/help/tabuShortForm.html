@@ -1,0 +1,201 @@
+<!DOCTYPE html><html><head><title>R: Short Form Tabu Search</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.css">
+<script>
+const macros = { "\\R": "\\textsf{R}", "\\mbox": "\\text", "\\code": "\\texttt"};
+function processMathHTML() {
+    var l = document.getElementsByClassName('reqn');
+    for (let e of l) { katex.render(e.textContent, e, { throwOnError: false, macros }); }
+    return;
+}</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.js"
+    onload="processMathHTML();"></script>
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body><div class="container"><main>
+
+<table style="width: 100%;"><tr><td>tabuShortForm {ShortForm}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Short Form Tabu Search</h2>
+
+<h3>Description</h3>
+
+<p>Given an initial (full) lavaan model string, the original data, a criterion
+function to minimize, and some additional specifications,
+performs a Tabu model specification search. Currently only supports
+neighbors that are 1 move away from the current model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class='language-R'>tabuShortForm(
+  originalData,
+  initialModel,
+  numItems,
+  criterion = function(x) {
+     tryCatch(-lavaan::fitmeasures(object = x, fit.measures =
+    "cfi"), error = function(e) Inf)
+ },
+  niter = 20,
+  tabu.size = 5,
+  lavaan.model.specs = list(int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE,
+    auto.fix.first = FALSE, auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x =
+    TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, ordered = NULL,
+    model.type = "cfa", estimator = "default"),
+  bifactor = FALSE,
+  verbose = FALSE,
+  parallel = T
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table role = "presentation">
+<tr><td><code id="originalData">originalData</code></td>
+<td>
+<p>The original data frame with variable names.</p>
+</td></tr>
+<tr><td><code id="initialModel">initialModel</code></td>
+<td>
+<p>The initial model (typically the full form) as a character vector with lavaan model.syntax.</p>
+</td></tr>
+<tr><td><code id="numItems">numItems</code></td>
+<td>
+<p>A numeric vector indicating the number of items to retain for each factor.</p>
+</td></tr>
+<tr><td><code id="criterion">criterion</code></td>
+<td>
+<p>A function calculating the objective criterion to minimize. Default is to use the built-in 'rmsea' value from 'lavaan::fitmeasures()'.</p>
+</td></tr>
+<tr><td><code id="niter">niter</code></td>
+<td>
+<p>A numeric value indicating the number of iterations (model specification selections)
+to perform. Default is 50.</p>
+</td></tr>
+<tr><td><code id="tabu.size">tabu.size</code></td>
+<td>
+<p>A numeric value indicating the size of Tabu list. Default is 5.</p>
+</td></tr>
+<tr><td><code id="lavaan.model.specs">lavaan.model.specs</code></td>
+<td>
+<p>A list which contains the specifications for the
+lavaan model. The default values are the defaults for lavaan to perform a
+CFA. See lavaan for more details.</p>
+</td></tr>
+<tr><td><code id="bifactor">bifactor</code></td>
+<td>
+<p>Logical. Indicates if the latent model is a bifactor model. If 'TRUE', assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable).</p>
+</td></tr>
+<tr><td><code id="verbose">verbose</code></td>
+<td>
+<p>Logical. If 'TRUE', prints out the initial short form and the selected short form at the end of each iteration.</p>
+</td></tr>
+<tr><td><code id="parallel">parallel</code></td>
+<td>
+<p>An option for using parallel processing. If <code>TRUE</code>, the 
+function will utilize all available cores. Default is <code>TRUE</code>.</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>A named list with the best value of the objective function ('best.obj') and the best lavaan model object ('best.mod').
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class='language-R'>shortAntModel &lt;- "
+Ability =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 + Item7 + Item8
+Ability ~ Outcome
+"
+
+data(simulated_test_data)
+tabuResult &lt;- tabuShortForm(
+  initialModel = shortAntModel,
+  originalData = simulated_test_data, numItems = 7,
+  niter = 1, tabu.size = 3, parallel = FALSE
+)
+summary(tabuResult) # shows the resulting model
+## Not run: 
+# create simulation data from the `psych` package
+# four factors, 12 items each, 48 total items
+# factor loading matrix - not quite simple structure
+fxMatrix &lt;-
+  matrix(
+    data = c(
+      rep(x = c(.9, .7, .5, .3), times = 3),
+      rep(0.2, times = 3 * 4 * 3), # first factor loadings
+
+      rep(0.2, times = 3 * 4),
+      rep(x = c(.9, .7, .5, .3), times = 3),
+      rep(0.2, times = 3 * 4 * 2), # second factor loadings
+
+      rep(0.2, times = 3 * 4 * 2),
+      rep(x = c(.9, .7, .5, .3), times = 3),
+      rep(0.2, times = 3 * 4), # third factor loadings
+
+      rep(0.2, times = 3 * 4 * 3),
+      rep(x = c(.9, .7, .5, .3), times = 3) # fourth factor loadings
+    ),
+    ncol = 4
+  )
+# factor correlation matrix - all factors uncorrelated
+PhiMatrix &lt;-
+  matrix(data = c(
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+  ), ncol = 4)
+tabuData &lt;-
+  psych::sim(
+    fx = fxMatrix,
+    Phi = PhiMatrix,
+    n = 1000,
+    raw = TRUE
+  )$observed # observed is the simulated observed data
+
+# NOTE: you must specify the model such that each factor is on a single line!
+# otherwise, the algorithm will not work correctly!
+tabuModel &lt;- "
+Trait1 =~ Item1 + Item2 + Item3 + Item4 + Item5 + Item6 +
+Item7 + Item8 + Item9 + Item10 + Item11 + Item12
+Trait2 =~ Item13 + Item14 + Item15 + Item16 + Item17 +
+Item18 + Item19 + Item20 + Item21 + Item22 + Item23 + Item24
+Trait3 =~ Item25 + Item26 + Item27 + Item28 + Item29 + Item30 +
+Item31 + Item32 + Item33 + Item34 + Item35 + Item36
+Trait4 =~ Item37 + Item38 + Item39 + Item40 + Item41 +
+Item42 + Item43 + Item44 + Item45 + Item46 + Item47 + Item48
+"
+
+colnames(tabuData) &lt;- paste0("Item", 1:48)
+# specify the criterion function that the Tabu Search minimizes
+# wrap this in a tryCatch in case a model does not converge!
+# specify an appropriate error value: if minimizing, error value must be large
+tabuCriterion &lt;- function(x) {
+  tryCatch(lavaan::fitmeasures(object = x, fit.measures = "chisq"),
+    error = function(e) Inf
+  )
+}
+
+# use the tabuShortForm function
+# reduce form to the best 12 items
+tabuShort &lt;- tabuShortForm(
+  initialModel = tabuModel, originalData = tabuData,
+  numItems = c(3, 3, 3, 3),
+  criterion = tabuCriterion,
+  niter = 20, tabu.size = 10
+)
+
+## End(Not run)
+
+</code></pre>
+
+<hr><div style="text-align: center;">[Package <em>ShortForm</em> version 0.5.8 ]</div></main>
+
+</div>
+</body></html>

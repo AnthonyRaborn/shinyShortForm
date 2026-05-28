@@ -1,0 +1,402 @@
+<!DOCTYPE html><html><head><title>R: A function to implement the ant colony optimization algorithm...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.css">
+<script>
+const macros = { "\\R": "\\textsf{R}", "\\mbox": "\\text", "\\code": "\\texttt"};
+function processMathHTML() {
+    var l = document.getElementsByClassName('reqn');
+    for (let e of l) { katex.render(e.textContent, e, { throwOnError: false, macros }); }
+    return;
+}</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.js"
+    onload="processMathHTML();"></script>
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body><div class="container"><main>
+
+<table style="width: 100%;"><tr><td>antcolony.lavaan {ShortForm}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>A function to implement the ant colony optimization algorithm for short form
+specification searches with the package lavaan.</h2>
+
+<h3>Description</h3>
+
+<p>The Ant Colony Optimization (ACO) algorithm (Dorigo &amp; Stutzle,
+2004) can produce short forms of scales that are optimized with respect to
+characteristics selected by the developer, such as model fit and predictive
+relationships with other variables. The algorithm is based on the foraging
+behavior of a group of ants, which start searching for food in a variety of
+directions and then eventually all ants converge to the shortest distance to
+the food source. This behavior occurs because ants leave a pheronome trail
+behind as they search for food and ants in shorter paths leave stronger
+pheronome trails, which are detected by other ants and that will lead them
+to follow the shortest trail.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class='language-R'>antcolony.lavaan(
+  data = NULL,
+  sample.cov = NULL,
+  sample.nobs = NULL,
+  ants = 20,
+  evaporation = 0.9,
+  antModel,
+  list.items = NULL,
+  full = NULL,
+  i.per.f = NULL,
+  factors = NULL,
+  bifactor = NULL,
+  steps = 50,
+  lavaan.model.specs = list(model.type = "cfa", auto.var = T, estimator = "default",
+    ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, auto.fix.first = TRUE,
+    auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE,
+    auto.delta = TRUE, auto.cov.y = TRUE, std.lv = F, group = NULL, group.label = NULL,
+    group.equal = "loadings", group.partial = NULL, group.w.free = FALSE),
+  pheromone.calculation = "gamma",
+  fit.indices = c("cfi", "tli", "rmsea"),
+  fit.statistics.test = "(cfi &gt; 0.95)&amp;(tli &gt; 0.95)&amp;(rmsea &lt; 0.06)",
+  summaryfile = NULL,
+  feedbackfile = NULL,
+  max.run = 1000,
+  parallel = T
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table role = "presentation">
+<tr><td><code id="data">data</code></td>
+<td>
+<p>The data being used in data frame format. Default value is
+<code>null</code>. Only one of <code>data</code> or <code>sample.cov</code> should be used.</p>
+</td></tr>
+<tr><td><code id="sample.cov">sample.cov</code></td>
+<td>
+<p>The sample covariance matrix. See lavaan for
+the specific format needed. Default value is <code>null</code>. Only one of
+<code>data</code> or <code>sample.cov</code> should be used.</p>
+</td></tr>
+<tr><td><code id="sample.nobs">sample.nobs</code></td>
+<td>
+<p>A numeric value indicating the number of observations in
+the sample covariance matrix. If <code>sample.cov</code> is used, this must be
+filled in. Default value is <code>null</code>.</p>
+</td></tr>
+<tr><td><code id="ants">ants</code></td>
+<td>
+<p>A numeric value indicating the number of ants to send (e.g.,
+number of short forms to evaluate) per iteration. Default value is 20.</p>
+</td></tr>
+<tr><td><code id="evaporation">evaporation</code></td>
+<td>
+<p>A numeric value which sets the percentage of the pheromone
+that is retained after evaporation between steps of the algorithm. Default
+value is 0.9, indicating 10
+(0,1), exclusive.</p>
+</td></tr>
+<tr><td><code id="antModel">antModel</code></td>
+<td>
+<p>The lavaan formatted model. See lavaan for more
+details. Defaults to the default lavaan values. NOTE: Each factor
+and/or regression needs to be specified on a single line. Newline breaks and
+carriage returns WILL break the function.</p>
+</td></tr>
+<tr><td><code id="list.items">list.items</code></td>
+<td>
+<p>A list containing one or more character vectors of item
+names for each factor, where each factor is a separate element of the list.
+The items should be input in the order in which the factors are input in
+<code>i.per.f</code> and <code>factors</code>.</p>
+</td></tr>
+<tr><td><code id="full">full</code></td>
+<td>
+<p>A numeric value indicating the total number of unique items in the
+test or scale.</p>
+</td></tr>
+<tr><td><code id="i.per.f">i.per.f</code></td>
+<td>
+<p>Vector with number of items per factor (e.g. target number), in
+the same order of <code>list.items</code> and <code>factors</code>.</p>
+</td></tr>
+<tr><td><code id="factors">factors</code></td>
+<td>
+<p>Character vector with names of factors in the same order of
+<code>list.items</code> and <code>i.per.f</code>.</p>
+</td></tr>
+<tr><td><code id="bifactor">bifactor</code></td>
+<td>
+<p>Either the name of the factor that all of the chosen items
+will load on (as character), or 'NULL' if the model is not a bifactor model.</p>
+</td></tr>
+<tr><td><code id="steps">steps</code></td>
+<td>
+<p>A numeric value that sets the stopping rule, which is the number
+of ants in a row for which the model does not change.</p>
+</td></tr>
+<tr><td><code id="lavaan.model.specs">lavaan.model.specs</code></td>
+<td>
+<p>A list which contains the specifications for the
+lavaan model. The default values are the defaults for lavaan to perform a
+CFA. These are automatically set internally, then updated by the user-provided
+values. Note that this drastically affects the algorithm, and care must be 
+taken to ensure that the algorithm can fit valid models as it searches for
+the best model. See the default arguments for examples of what you can change
+and lavaan for more details on what arguments are available 
+to change.</p>
+</td></tr>
+<tr><td><code id="pheromone.calculation">pheromone.calculation</code></td>
+<td>
+<p>A character string specifying the method for
+calculating the pheromone strength. Must be one of &quot;<code>gamma</code>&quot;
+(standardized latent regression coefficients), &quot;<code>beta</code>&quot;
+(standardized observed regression coefficients), &quot;<code>regression</code>&quot;
+(both latent and observed regression coefficients, if they exist)
+or &quot;<code>variance</code>&quot; (proportion of
+variance explained by model). You must specify the entire string. Default is
+<code>gamma</code>.</p>
+</td></tr>
+<tr><td><code id="fit.indices">fit.indices</code></td>
+<td>
+<p>The fit indices (in lavaan format) extracted for model
+optimization. See lavaan for more details.</p>
+</td></tr>
+<tr><td><code id="fit.statistics.test">fit.statistics.test</code></td>
+<td>
+<p>A character vector of the logical test being used
+for model optimization. The default is <code>"(cfi &gt; 0.95)&amp;(tli &gt;
+0.95)&amp;(rmsea &lt; 0.06)"</code>. The format for the logical test should match 1) the
+names of the indices being used in lavaan and 2) the default
+provided above. At least one fit index must be included.</p>
+</td></tr>
+<tr><td><code id="summaryfile">summaryfile</code></td>
+<td>
+<p>The name of the summary file generated. A .txt file is
+suggested. Default is &quot;summary.txt&quot; and writes into the current working
+directory. This file writes a line for each ant within each step and
+includes (a) a vector of a 0/1 value for each item indicating whether the
+item was selected by that ant, (b) the run number, (c) the count number, (d)
+the ant number, and (e) the current pheromone level.</p>
+</td></tr>
+<tr><td><code id="feedbackfile">feedbackfile</code></td>
+<td>
+<p>The name of the feedback file generated. An .html file is
+suggested. Default is &quot;iteration.html&quot; and writes into the current working
+directory. This file saves the result of each run, which includes (a) the
+run number, (b) the count number, (c) the ant number, (d) the step number
+(if the current run is successful) or &quot;Failure&quot; (if the current run is
+unsuccessful), and for successful runs (f) the chosen fit statistics (from
+<code>fit.indices</code>), the average of the gammas and betas (standardized regression
+coefficients), and the overall variance explained of the current run.</p>
+</td></tr>
+<tr><td><code id="max.run">max.run</code></td>
+<td>
+<p>The maximum number of ants to run before the algorithm stops.
+This includes failed iterations as well. Default is 1000.</p>
+</td></tr>
+<tr><td><code id="parallel">parallel</code></td>
+<td>
+<p>An option for using parallel processing. If <code>TRUE</code>, the
+function will utilize all available cores (up to the number of ants). Default
+is <code>TRUE</code>.</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>This function sends a specified number of ants per iteration, which
+randomly select items to build a model, then evaluates the model based on
+pheromone levels. The pheromone levels are updated after each iteration
+according to the best-fitting model of that iteration. The algorithm's
+stopping rule is to end the search when a certain solution is the same for a
+given number of ants in a row.
+</p>
+<p>PREPARATORY STEPS: For the ACO algorithm implementation for short for
+selection, the following decisions are needed:
+</p>
+<p>1. Determine the target size for the short form.
+</p>
+<p>2. Determine which characteristics should be optimized.
+</p>
+<p>3. Define how the pheronome level will be computed: This is a function of
+the characteristics of the short form that will be optimized. In Leite,
+Huang and Marcoulides (2008), the pheromone level was zero if model fit
+indices did not meet Hu and Bentler's (1999) suggested thresholds, and equal
+to the sum of path coefficients of a predictor variable if model fit indices
+met thresholds. Currently, the package only implements pheromone calculation
+based on regression coefficients or variance explained, with user-selected
+model fit index thresholds.
+</p>
+<p>4. Define how many short forms should be evaluated before the best-so-far
+pheronome level is examined. Leite, Huang and Marcoulides (2008) used 10
+short forms.
+</p>
+<p>5. Define the percentage of pheronome evaporation, if any. Leite, Huang and
+Marcoulides (2008) used 5%.
+</p>
+<p>6. Define convergence criterion. Leite, Huang and Marcoulides (2008) set the
+algorithm to converge if the short form did not improve in 100 x number of
+short forms in step 4.
+</p>
+<p>IMPLEMENTATION: Once these decisions are made, the ACO algorithm selects
+short forms with the following steps:
+</p>
+<p>Step 1. All items are assigned an initial weight of 1.
+</p>
+<p>Step 2. A set of n short forms is selected by sampling with probability
+proportional to the item weights.
+</p>
+<p>Step 3. Fit the latent variable model to the n short forms.
+</p>
+<p>Step 4. Calculate the pheromone levels for the n short forms. Define the
+best-so-far pheronome level (if iteration 1) or compare the current best
+pheronome from the set of n short forms to the best-so-far pheronome.
+</p>
+<p>Step 5. If the pheromone level of the best short form from step 4 exceeds
+the best-so-far pheronome level, update the best-so-far pheromone level and
+add it to the current weight of the items of the best short form.
+</p>
+<p>Step 6. Return to step 2 until convergence criterion is reached.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with four elements: the first containing a named matrix with
+final model's best fit indices, the final pheromone level (either the mean
+of the standardized regression coefficients (gammas, betas, or both), or the mean variance
+explained), and a series of 0/1 values indicating the items selected in the
+final solution,  the second element containing tbe summary matrix of the
+best fit statistic value(s) for each run, the items chosen for said best fit,
+the mean gamma, beta, and variance explained for the best fit, and the item pheromone
+levels after each run, the third containing the best-fitting lavaan model
+object, and the fourth containing the best-fitting model syntax.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Anthony W Raborn, <a href="mailto:anthony.w.raborn@gmail.com">anthony.w.raborn@gmail.com</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>antcolony.mplus</code>
+</p>
+<p>Other Ant Colony Algorithms:
+<code>antcolony.mplus()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class='language-R'># a 3-factor example using the HolzingerSwineford1939 data from `lavaan`
+
+# some changes to the default values
+# notice that in this example we are recreating the original model
+abilityShortForm &lt;- antcolony.lavaan(
+  data = lavaan::HolzingerSwineford1939,
+  ants = 2, evaporation = 0.7,
+  antModel = " visual  =~ x1 + x2 + x3
+             textual =~ x4 + x5 + x6
+             speed   =~ x7 + x8 + x9 ",
+  list.items = list(c(
+    "x1",
+    "x2", "x3"
+  ), c("x4", "x5", "x6"), c("x7", "x8", "x9")), full = 9, i.per.f =
+    c(3, 3, 3), factors = c("visual", "textual", "speed"), steps = 2, fit.indices =
+    c("cfi"), fit.statistics.test = "(cfi &gt; 0.6)", summaryfile =
+    NULL, feedbackfile = NULL, max.run = 2, parallel = FALSE
+)
+## Not run: 
+# using simulated test data and the default values for lavaan.model.specs
+# first, read in the original or "full" model
+data(exampleAntModel) # a character vector for a lavaan model
+
+# then, create the list of the items by the factors
+# in this case, all items load onto the general 'Ability' factor
+list.items &lt;- list(c(
+  "Item1", "Item2", "Item3", "Item4", "Item5",
+  "Item6", "Item7", "Item8", "Item9", "Item10",
+  "Item11", "Item12", "Item13", "Item14", "Item15",
+  "Item16", "Item17", "Item18", "Item19", "Item20",
+  "Item21", "Item22", "Item23", "Item24", "Item25",
+  "Item26", "Item27", "Item28", "Item29", "Item30",
+  "Item31", "Item32", "Item33", "Item34", "Item35",
+  "Item36", "Item37", "Item38", "Item39", "Item40",
+  "Item41", "Item42", "Item43", "Item44", "Item45",
+  "Item46", "Item47", "Item48", "Item49", "Item50",
+  "Item51", "Item52", "Item53", "Item54", "Item55", "Item56"
+))
+
+# load the data
+data(simulated_test_data)
+
+# finally, call the function with some minor changes to the default values.
+abilityShortForm &lt;- antcolony.lavaan(
+  data = simulated_test_data,
+  ants = 5, evaporation = 0.7, antModel = exampleAntModel,
+  list.items = list.items, full = 56, i.per.f = 20,
+  factors = "Ability", steps = 3, fit.indices = c("cfi", "rmsea"),
+  fit.statistics.test = "(cfi &gt; 0.95)&amp;(rmsea &lt; 0.05)",
+  summaryfile = "summary.txt",
+  feedbackfile = "iteration.html",
+  max.run = 500
+)
+
+abilityShortForm # print the results of the final short form
+
+# an example using binary (ordered) data
+# create the simulated full model and model data
+sim_model &lt;- "
+f1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
+f2 =~ x11 + x12 + x13 + x14 + x15 + x16 + x17 + x18 + x19 + x20
+f3 =~ x21 + x22 + x23 + x24 + x25 + x26 + x27 + x28 + x29 + x30"
+
+sim_data &lt;-
+  cbind(
+    psych::sim.rasch(nvar = 10)$items,
+    psych::sim.rasch(nvar = 10)$items,
+    psych::sim.rasch(nvar = 10)$items
+  )
+
+colnames(sim_data) = paste0("x", 1:30)
+# fit with antcolony.lavaan
+# note that ONLY the estimator and ordered args
+# of lavaan.model.specs are changed. This retains
+# the default args, fitting a CFA but with ordered data.
+example &lt;-
+antcolony.lavaan(
+  data = sim_data,
+  ants = 5, evaporation = 0.7,
+  antModel = sim_model,
+  lavaan.model.specs = 
+    list(estimator = "wlsmv", ordered = T),
+  list.items = list(paste0('x', 1:10),
+                    paste0('x', 11:20),
+                    paste0('x', 21:30)), 
+  full = 30, 
+  i.per.f = c(5, 5, 5), 
+  factors = c("f1", "f2", "f3"),
+  steps = 20, 
+  fit.indices = c("cfi.scaled"), 
+  fit.statistics.test = "(cfi.scaled &gt; 0.90)", 
+  summaryfile = NULL, 
+  feedbackfile = NULL, 
+  max.run = 500, 
+  parallel = T
+)
+# note that this example will take a bit of time to run
+# as ordered data factor analysis is computationally expensive.
+
+## End(Not run)
+</code></pre>
+
+<hr><div style="text-align: center;">[Package <em>ShortForm</em> version 0.5.8 ]</div></main>
+
+</div>
+</body></html>

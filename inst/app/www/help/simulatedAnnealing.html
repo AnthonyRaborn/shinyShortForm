@@ -1,0 +1,213 @@
+<!DOCTYPE html><html><head><title>R: An adaptation of the simulated annealing algorithm for...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.css">
+<script>
+const macros = { "\\R": "\\textsf{R}", "\\mbox": "\\text", "\\code": "\\texttt"};
+function processMathHTML() {
+    var l = document.getElementsByClassName('reqn');
+    for (let e of l) { katex.render(e.textContent, e, { throwOnError: false, macros }); }
+    return;
+}</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.js"
+    onload="processMathHTML();"></script>
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body><div class="container"><main>
+
+<table style="width: 100%;"><tr><td>simulatedAnnealing {ShortForm}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>An adaptation of the simulated annealing algorithm for psychometric models.</h2>
+
+<h3>Description</h3>
+
+<p>Simulated annealing mimics the physical process of annealing metals together. <a href="https://www.science.org/doi/10.1126/science.220.4598.671">Kirkpatrick et al. (1983)</a> introduces this analogy and demonstrates its use; the implementation here follows this demonstration closely, with some modifications to make it better suited for psychometric models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class='language-R'>simulatedAnnealing(
+  initialModel,
+  originalData,
+  maxSteps,
+  fitStatistic = "cfi",
+  temperature = "linear",
+  maximize = TRUE,
+  Kirkpatrick = TRUE,
+  randomNeighbor = TRUE,
+  lavaan.model.specs = list(model.type = "cfa", auto.var = TRUE, estimator = "default",
+    ordered = NULL, int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE,
+    auto.fix.first = FALSE, auto.fix.single = TRUE, auto.cov.lv.x = TRUE, auto.th = TRUE,
+    auto.delta = TRUE, auto.cov.y = TRUE),
+  maxChanges = 5,
+  restartCriteria = "consecutive",
+  maximumConsecutive = 25,
+  maxItems = NULL,
+  items = NULL,
+  bifactor = FALSE,
+  setChains = 1,
+  shortForm = T,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table role = "presentation">
+<tr><td><code id="initialModel">initialModel</code></td>
+<td>
+<p>The initial model as a <code>character</code> vector with lavaan model.syntax.</p>
+</td></tr>
+<tr><td><code id="originalData">originalData</code></td>
+<td>
+<p>The original <code>data.frame</code> with variable names.</p>
+</td></tr>
+<tr><td><code id="maxSteps">maxSteps</code></td>
+<td>
+<p>The number of iterations for which the algorithm will run.</p>
+</td></tr>
+<tr><td><code id="fitStatistic">fitStatistic</code></td>
+<td>
+<p>Either a single model fit statistic produced by lavaan, or a user-defined fit statistic function.</p>
+</td></tr>
+<tr><td><code id="temperature">temperature</code></td>
+<td>
+<p>Either an acceptable <code>character</code> value, or a user-defined temperature function. The acceptable values are &quot;linear&quot;, &quot;quadratic&quot;, or &quot;logistic&quot;.</p>
+</td></tr>
+<tr><td><code id="maximize">maximize</code></td>
+<td>
+<p>Logical indicating if the goal is to maximize (<code>TRUE</code>) the fitStatistic for model selection.</p>
+</td></tr>
+<tr><td><code id="Kirkpatrick">Kirkpatrick</code></td>
+<td>
+<p>Either <code>TRUE</code> to use Kirkpatrick et al. (1983) acceptance probability, or a user-defined function for accepting proposed models.</p>
+</td></tr>
+<tr><td><code id="randomNeighbor">randomNeighbor</code></td>
+<td>
+<p>Either <code>TRUE</code> to use the included function for randomNeighbor selection, or a user-defined function for creating random models.</p>
+</td></tr>
+<tr><td><code id="lavaan.model.specs">lavaan.model.specs</code></td>
+<td>
+<p>A <code>list</code> which contains the specifications for the
+lavaan model. The default values are the defaults for lavaan to perform a
+CFA. See lavaan for more details.</p>
+</td></tr>
+<tr><td><code id="maxChanges">maxChanges</code></td>
+<td>
+<p>An <code>integer</code> value greater than 1 setting the maximum number of parameters to change within randomNeighbor. When creating a short form, should be no greater than the smallest reduction in items loading on one factor; e.g., when reducing a 2-factor scale from 10 items on each factor to 8 items on the first and 6 items on the second, maxChanges should be no greater than 2.</p>
+</td></tr>
+<tr><td><code id="restartCriteria">restartCriteria</code></td>
+<td>
+<p>Either &quot;consecutive&quot; to restart after maxConsecutiveSelection times with the same model chosen in a row, or a user-defined function.</p>
+</td></tr>
+<tr><td><code id="maximumConsecutive">maximumConsecutive</code></td>
+<td>
+<p>A positive <code>integer</code> value used with restartCriteria.</p>
+</td></tr>
+<tr><td><code id="maxItems">maxItems</code></td>
+<td>
+<p>When creating a short form, a <code>vector</code> of the number of items per factor you want the short form to contain. Defaults to <code>NULL</code>.</p>
+</td></tr>
+<tr><td><code id="items">items</code></td>
+<td>
+<p>A <code>character</code> vector of item names. Defaults to <code>NULL</code>. Ignored if <code>maxItems==FALSE</code>.</p>
+</td></tr>
+<tr><td><code id="bifactor">bifactor</code></td>
+<td>
+<p>Logical. Indicates if the latent model is a bifactor model. If <code>TRUE</code>, assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable). Ignored if <code>maxItems==FALSE</code>.</p>
+</td></tr>
+<tr><td><code id="setChains">setChains</code></td>
+<td>
+<p>Numeric. Sets the number of parallel chains to run. Default to <code>1</code>, which also sets the algorithm to run serially (e.g., on a single processor). Values greater than <code>1</code> result in the chains running on parallel processes using the <code>doSNOW</code> and <code>foreach</code> packages.</p>
+</td></tr>
+<tr><td><code id="shortForm">shortForm</code></td>
+<td>
+<p>Logical. Are you creating a short form (<code>TRUE</code>) or not (<code>FALSE</code>)? Default is <code>TRUE</code>.</p>
+</td></tr>
+<tr><td><code id="...">...</code></td>
+<td>
+<p>Further arguments to be passed to other functions. Not implemented for any of the included functions.</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p><strong>Outline of the Pieces of the Simulated Annealing Algorithm</strong>
+</p>
+
+<ul>
+<li><p> initialModel &ndash; the initial, full form
+</p>
+</li>
+<li><p> currentModel &ndash; the model of the current step
+</p>
+</li>
+<li><p> maxSteps &ndash; the maximum number of steps (iterations)
+</p>
+</li>
+<li><p> currentStep &ndash; the current step
+</p>
+</li>
+<li><p> currentTemp &ndash; the current temperature. A function of the number of steps (such that temp = 0 at maxSteps), and values that control the shape of the overall temperature. A part of the function that determines the acceptance probability of newly &ndash; generated models
+</p>
+</li>
+<li><p> randomNeighbor &ndash; a function that determines how the form is changed at each step. Should be able to change one or more parameters, and should have a way to control how many are changed.
+</p>
+</li>
+<li><p> goal &ndash; a function that determines the &quot;goodness&quot; of the currentModel. Typically in SA goodness is defined as minimization! Sometimes called an energy function
+</p>
+</li>
+<li><p> selectionFunction &ndash; a function that determines if a randomNeighbor change is accepted. Uses the goal function that determines the &quot;goodness&quot; of the currentModel and the &quot;goodness&quot; of the randomNeighbor, and the currentTemp to generate a probability of acceptance, then compares this probability to a Uniform(0,1) variable to determine if accepted or not. A standard version of this is:
+<img src="../help/figures/SA-goal.jpg" alt="SA-goal.jpg">
+(Kirkpatrick et al., 1983)
+</p>
+</li>
+<li><p> bestModel &ndash; the model with the best value of the goal function achieved so far
+</p>
+</li>
+<li><p> bestGoal &ndash; the best value of the goal function achieved so far
+</p>
+</li>
+<li><p> restartCriteria &ndash; if utilized, this would &quot;restart&quot; the SA process by changing currentModel to bestModel and continuing the process. Could be based on (1) the currentStep value, (2) the difference between goal(currentModel) and goal(bestModel), (3) randomness (i.e., could randomly restart, could randomly restart based on some values, etc), (4) other criteria.
+</p>
+</li></ul>
+
+
+
+<h3>Value</h3>
+
+<p>A named list: the 'bestModel' found, the 'bestFit', and 'allFit' values found by the algorithm.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class='language-R'>## Not run: 
+data(exampleAntModel)
+data(simulated_test_data)
+trial1 &lt;- simulatedAnnealing(
+  initialModel = lavaan::cfa(
+    model = exampleAntModel,
+    data = simulated_test_data
+  ),
+  originalData = simulated_test_data, maxSteps = 3,
+  fitStatistic = "rmsea", maximize = FALSE
+)
+summary(trial1) # shows the resulting model
+
+trial2 &lt;- simulatedAnnealing(
+  initialModel = exampleAntModel,
+  originalData = simulated_test_data,
+  maxSteps = 2, maxItems = 30, items = paste0("Item", 1:56)
+)
+summary(trial2) # shows the resulting model
+
+## End(Not run)
+</code></pre>
+
+<hr><div style="text-align: center;">[Package <em>ShortForm</em> version 0.5.8 ]</div></main>
+
+</div>
+</body></html>
