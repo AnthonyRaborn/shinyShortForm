@@ -1,0 +1,270 @@
+/*-- scss:defaults --*/
+
+// Typography
+$font-family-sans-serif: "Atkinson Hyperlegible", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-monospace: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+// Brand colors
+$rds-navy-dark: #0B1220;
+$rds-navy: #172033;
+$rds-slate-dark: #1E293B;
+$rds-slate: #2F3A4A;
+$rds-gray-light: #CBD5E1;
+$rds-off-white: #F8FAFC;
+
+$rds-teal-light: #2DD4BF;
+$rds-blue-light: #60A5FA;
+$rds-amber-light: #FBBF24;
+$rds-red: #F87171;
+$rds-green: #4ADE80;
+
+// Bootstrap semantic colors
+$primary: $rds-teal-light;
+$secondary: $rds-gray-light;
+$success: $rds-green;
+$info: $rds-blue-light;
+$warning: $rds-amber-light;
+$danger: $rds-red;
+$light: $rds-off-white;
+$dark: $rds-navy-dark;
+
+// Page colors
+$body-bg: $rds-navy-dark;
+$body-color: $rds-off-white;
+$link-color: $rds-teal-light;
+$link-hover-color: lighten($rds-teal-light, 8%);
+$headings-color: $rds-off-white;
+$border-color: rgba(203, 213, 225, 0.18);
+
+// Code
+$code-bg: rgba(203, 213, 225, 0.14);
+$code-color: $rds-gray-light;
+
+// Navbar
+$navbar-bg: $rds-navy-dark;
+$navbar-fg: $rds-off-white;
+
+/*-- scss:rules --*/
+
+body {
+  letter-spacing: -0.005em;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.025em;
+}
+
+.navbar {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.navbar-brand img {
+  max-height: 36px;
+}
+
+.hero {
+  padding: 4rem 0 3rem 0;
+}
+
+.hero h1 {
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  max-width: 920px;
+}
+
+.hero .lead {
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  max-width: 760px;
+  color: $rds-gray-light;
+}
+
+.rds-card {
+  border: 1px solid rgba(203, 213, 225, 0.18);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  background: $rds-slate-dark;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+  height: 100%;
+}
+
+.rds-card h3 {
+  margin-top: 0;
+  color: $rds-off-white;
+}
+
+.rds-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.16);
+  color: $rds-teal-light;
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-right: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.decision-point {
+  border-left: 4px solid $rds-amber-light;
+  background: rgba(245, 158, 11, 0.16);
+  color: $rds-off-white;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.btn-primary {
+  background-color: $rds-teal-light;
+  border-color: $rds-teal-light;
+  color: $rds-navy-dark;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background-color: lighten($rds-teal-light, 5%);
+  border-color: lighten($rds-teal-light, 5%);
+  color: $rds-navy-dark;
+}
+
+.btn-secondary {
+  background-color: $rds-blue-light;
+  border-color: $rds-blue-light;
+  color: $rds-navy-dark;
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background-color: lighten($rds-blue-light, 5%);
+  border-color: lighten($rds-blue-light, 5%);
+  color: $rds-navy-dark;
+}
+
+.btn-tertiary {
+  background-color: $rds-amber-light;
+  border-color: $rds-amber-light;
+  color: $rds-navy-dark;
+  font-weight: 600;
+}
+
+.btn-tertiary:hover {
+  background-color: lighten($rds-amber-light, 5%);
+  border-color: lighten($rds-amber-light, 5%);
+  color: $rds-navy-dark;
+}
+
+code {
+  background-color: rgba(203, 213, 225, 0.14);
+  color: $rds-gray-light;
+}
+
+.navbar-brand img {
+  max-height: 32px;
+  width: auto;
+}
+
+.navbar-brand {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.navbar {
+  min-height: 56px;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+.quarto-dark .rds-contact-form {
+  background: #101B2E;
+  border-color: rgba(242, 244, 247, 0.14);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.32);
+}
+
+.quarto-dark .rds-form-header h2,
+.quarto-dark .rds-form-field label {
+  color: #F2F4F7;
+}
+
+.quarto-dark .rds-form-header p,
+.quarto-dark .rds-help-text {
+  color: #C7D2E1;
+}
+
+.quarto-dark .rds-form-field input,
+.quarto-dark .rds-form-field textarea {
+  background: #0B132A;
+  border-color: rgba(242, 244, 247, 0.18);
+  color: #F2F4F7;
+}
+
+.quarto-dark .rds-form-field input::placeholder,
+.quarto-dark .rds-form-field textarea::placeholder {
+  color: #8EA0B8;
+}
+
+.quarto-dark .rds-form-field input:focus,
+.quarto-dark .rds-form-field textarea:focus {
+  border-color: #4FD3CE;
+  box-shadow: 0 0 0 4px rgba(79, 211, 206, 0.18);
+}
+
+/* Prevent wide ticker content from expanding the About page layout */
+.quarto-about-trestles,
+.quarto-about-trestles main,
+.quarto-about-trestles .about-entity,
+.quarto-about-trestles .about-contents {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Ticker outer wrapper participates in normal page width */
+.ticker-outer {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Visual ticker box */
+.ticker-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  padding: 0.75rem 0;
+  border-block: 1px solid rgba(100, 116, 139, 0.22);
+  contain: inline-size;
+}
+
+/* The moving content can be wide, but should not affect parent width */
+.ticker-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  min-width: max-content;
+  animation: seamless-scroll 24s linear infinite;
+  will-change: transform;
+}
+
+.ticker-item {
+  flex: 0 0 auto;
+  padding: 0 2rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--bs-body-color);
+}
+
+@keyframes seamless-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-container:hover .ticker-wrapper {
+  animation-play-state: paused;
+}
