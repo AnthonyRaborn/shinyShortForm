@@ -27,11 +27,11 @@
 
 # Minimal valid args list -- doesn't need to be algorithm-correct for these tests
 mock_args <- list(
-  ants      = 5,
-  evaporation = 0.9,
-  steps     = 5,
-  max.run   = 100,
-  parallel  = FALSE
+  ants          = 5,
+  evaporation   = 0.9,
+  steps         = 5,
+  maxIterations = 100,
+  parallel      = FALSE
 )
 
 # ---------------------------------------------------------------------------

@@ -56,8 +56,8 @@ test_that("aco_args returns a named list with all required keys", {
   result <- aco_args(mock_aco_input)
   expect_type(result, "list")
   expect_named(result, c(
-    "ants", "evaporation", "steps", "max.run", "pheromone.calculation",
-    "plot_choice", "i.per.f", "list.items", "full", "factors",
+    "ants", "evaporation", "steps", "maxIterations", "pheromone.calculation",
+    "plot_choice", "itemsPerFactor",
     "fit.indices", "fit.statistics.test", "lavaan.model.specs", "parallel"
   ), ignore.order = TRUE)
 })
@@ -66,7 +66,7 @@ test_that("aco_args maps input values correctly", {
   result <- aco_args(mock_aco_input)
   expect_equal(result$ants, 5)
   expect_equal(result$evaporation, 0.9)
-  expect_equal(result$i.per.f, c(5, 5, 5))
+  expect_equal(result$itemsPerFactor, c(5, 5, 5))
   expect_equal(result$pheromone.calculation, "gamma")
   expect_false(result$parallel)
 })
@@ -74,8 +74,6 @@ test_that("aco_args maps input values correctly", {
 test_that("aco_args fixed args are correct", {
   result <- aco_args(mock_aco_input)
   expect_equal(result$fit.indices, "cfi")
-  expect_equal(result$full, N_ITEMS)
-  expect_equal(result$factors, FACTOR_NAMES)
 })
 
 # ---------------------------------------------------------------------------
@@ -90,16 +88,16 @@ test_that("sa_args returns a named list with all required keys", {
   result <- sa_args(mock_sa_input)
   expect_type(result, "list")
   expect_named(result, c(
-    "maxSteps", "maxChanges", "maximumConsecutive", "temperature",
-    "maxItems", "items", "setChains", "parallel"
+    "maxIterations", "maxChanges", "maximumConsecutive", "temperature",
+    "itemsPerFactor", "items", "setChains", "parallel"
   ), ignore.order = TRUE)
 })
 
 test_that("sa_args maps input values correctly", {
   result <- sa_args(mock_sa_input)
-  expect_equal(result$maxSteps, 50)
+  expect_equal(result$maxIterations, 50)
   expect_equal(result$temperature, "linear")
-  expect_equal(result$maxItems, c(5, 5, 5))
+  expect_equal(result$itemsPerFactor, c(5, 5, 5))
   expect_equal(result$setChains, 1L)
   expect_false(result$parallel)
 })
@@ -123,14 +121,14 @@ test_that("tabu_args returns a named list with all required keys", {
   result <- tabu_args(mock_tabu_input)
   expect_type(result, "list")
   expect_named(result, c(
-    "numItems", "niter", "tabu.size", "lavaan.model.specs", "parallel"
+    "itemsPerFactor", "maxIterations", "tabu.size", "lavaan.model.specs", "parallel"
   ), ignore.order = TRUE)
 })
 
 test_that("tabu_args maps input values correctly", {
   result <- tabu_args(mock_tabu_input)
-  expect_equal(result$numItems, c(5, 5, 5))
-  expect_equal(result$niter, 5)
+  expect_equal(result$itemsPerFactor, c(5, 5, 5))
+  expect_equal(result$maxIterations, 5)
   expect_equal(result$tabu.size, 5)
   expect_false(result$parallel)
 })

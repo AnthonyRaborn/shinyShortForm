@@ -40,15 +40,5 @@ SIM_MODEL <- "
   f3 =~ x21 + x22 + x23 + x24 + x25 + x26 + x27 + x28 + x29 + x30
 "
 
-#' Factor-to-item mappings for ACO and related algorithms
-#'
-#' @noRd
-FACTOR_ITEM_LIST <- list(
-  paste0("x", 1:10),
-  paste0("x", 11:20),
-  paste0("x", 21:30)
-)
-
-FACTOR_NAMES <- c("f1", "f2", "f3")
 N_FACTORS    <- 3L
 N_ITEMS      <- 30L
