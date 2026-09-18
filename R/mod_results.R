@@ -55,7 +55,7 @@
     stop("No S4 plot method found for class: ", s4_class)
   }
   if (!is.null(plot_type)) {
-    plot_method(res, plot_type)
+    plot_method(res, type = plot_type)
   } else {
     plot_method(res)
   }
