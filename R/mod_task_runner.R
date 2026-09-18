@@ -82,38 +82,35 @@ mod_task_runner_server <- function(id, algorithm, args, run_trigger) {
       future::future({
         result <- switch(
           choice,
-          "Ant Colony Optimization" = ShortForm::antcolony.lavaan(
+          "Ant Colony Optimization" = ShortForm::antColony(
             data                  = sim_data,
             ants                  = run_args$ants,
             evaporation           = run_args$evaporation,
-            antModel              = sim_model,
-            list.items            = run_args$list.items,
-            full                  = run_args$full,
-            i.per.f               = run_args$i.per.f,
-            factors               = run_args$factors,
+            initialModel          = sim_model,
+            itemsPerFactor        = run_args$itemsPerFactor,
             steps                 = run_args$steps,
             pheromone.calculation = run_args$pheromone.calculation,
             fit.indices           = run_args$fit.indices,
             fit.statistics.test   = run_args$fit.statistics.test,
-            max.run               = run_args$max.run,
+            maxIterations         = run_args$maxIterations,
             parallel              = run_args$parallel
           ),
           "Simulated Annealing" = ShortForm::simulatedAnnealing(
             initialModel       = sim_model,
             originalData       = sim_data,
             setChains          = run_args$setChains,
-            maxItems           = run_args$maxItems,
+            itemsPerFactor     = run_args$itemsPerFactor,
             items              = run_args$items,
-            maxSteps           = run_args$maxSteps,
+            maxIterations      = run_args$maxIterations,
             temperature        = run_args$temperature,
             maxChanges         = run_args$maxChanges,
             parallel           = run_args$parallel
           ),
-          "Tabu Search" = ShortForm::tabuShortForm(
+          "Tabu Search" = ShortForm::tabuSearch(
             originalData       = sim_data,
             initialModel       = sim_model,
-            numItems           = run_args$numItems,
-            niter              = run_args$niter,
+            itemsPerFactor     = run_args$itemsPerFactor,
+            maxIterations      = run_args$maxIterations,
             tabu.size          = run_args$tabu.size,
             lavaan.model.specs = run_args$lavaan.model.specs,
             parallel           = FALSE

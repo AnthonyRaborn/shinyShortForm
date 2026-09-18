@@ -38,7 +38,7 @@ tabu_param_ui <- function(ns) {
 #' Build the argument list for Tabu Search
 #'
 #' @param input The Shiny input object (or a plain list for testing).
-#' @return A named list of arguments for \code{ShortForm::tabuShortForm()},
+#' @return A named list of arguments for \code{ShortForm::tabuSearch()},
 #'   or \code{NULL} if required inputs are not yet available.
 #' @noRd
 tabu_args <- function(input) {
@@ -50,9 +50,9 @@ tabu_args <- function(input) {
 
   list(
     # User-controlled
-    numItems   = c(input$tabu_numItems1, input$tabu_numItems2, input$tabu_numItems3),
-    niter      = input$tabu_niter,
-    tabu.size  = input$tabu_size,
+    itemsPerFactor = c(input$tabu_numItems1, input$tabu_numItems2, input$tabu_numItems3),
+    maxIterations  = input$tabu_niter,
+    tabu.size      = input$tabu_size,
     # Fixed lavaan model specs
     lavaan.model.specs = list(
       int.ov.free    = TRUE,

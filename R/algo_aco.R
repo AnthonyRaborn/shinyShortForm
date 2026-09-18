@@ -63,7 +63,7 @@ aco_param_ui <- function(ns) {
 #' This makes it independently unit-testable with a mock input list.
 #'
 #' @param input The Shiny input object (or a plain list for testing).
-#' @return A named list of arguments for \code{ShortForm::antcolony.lavaan()},
+#' @return A named list of arguments for \code{ShortForm::antColony()},
 #'   or \code{NULL} if required inputs are not yet available.
 #' @noRd
 aco_args <- function(input) {
@@ -81,14 +81,11 @@ aco_args <- function(input) {
     ants                  = input$aco_ants,
     evaporation           = input$aco_evaporation,
     steps                 = input$aco_steps,
-    max.run               = input$aco_maxrun,
+    maxIterations         = input$aco_maxrun,
     pheromone.calculation = input$aco_pheromone,
     plot_choice           = input$aco_plot_choice,
-    i.per.f               = c(input$aco_iperf1, input$aco_iperf2, input$aco_iperf3),
-    # Fixed / derived — pulled from global.R
-    list.items            = FACTOR_ITEM_LIST,
-    full                  = N_ITEMS,
-    factors               = FACTOR_NAMES,
+    itemsPerFactor        = c(input$aco_iperf1, input$aco_iperf2, input$aco_iperf3),
+    # Fixed / derived
     fit.indices           = "cfi",
     fit.statistics.test   = "(cfi > 0.90)",
     lavaan.model.specs    = list(estimator = "wlsmv", ordered = TRUE),

@@ -60,11 +60,11 @@ sa_args <- function(input) {
 
   list(
     # User-controlled
-    maxSteps           = input$sa_maxSteps,
+    maxIterations      = input$sa_maxSteps,
     maxChanges         = input$sa_maxChanges,
     maximumConsecutive = input$sa_maxConsecutive,
     temperature        = input$sa_temperature,
-    maxItems           = c(input$sa_maxItems1, input$sa_maxItems2, input$sa_maxItems3),
+    itemsPerFactor     = c(input$sa_maxItems1, input$sa_maxItems2, input$sa_maxItems3),
     # Fixed / derived
     items              = paste0("x", seq_len(N_ITEMS)),
     setChains          = 1L,
