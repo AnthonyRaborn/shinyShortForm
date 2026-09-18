@@ -14,7 +14,7 @@ function processMathHTML() {
 <link rel="stylesheet" type="text/css" href="R.css">
 </head><body><div class="container"><main>
 
-<table style="width: 100%;"><tr><td>tabuShortForm {ShortForm}</td><td style="text-align: right;">R Documentation</td></tr></table>
+<table style="width: 100%;"><tr><td>tabuSearch {ShortForm}</td><td style="text-align: right;">R Documentation</td></tr></table>
 
 <h2>Short Form Tabu Search</h2>
 
@@ -29,21 +29,20 @@ neighbors that are 1 move away from the current model.
 
 <h3>Usage</h3>
 
-<pre><code class='language-R'>tabuShortForm(
+<pre><code class='language-R'>tabuSearch(
   originalData,
   initialModel,
-  numItems,
-  criterion = function(x) {
-     tryCatch(-lavaan::fitmeasures(object = x, fit.measures =
-    "cfi"), error = function(e) Inf)
- },
-  niter = 20,
+  itemsPerFactor,
+  items = NULL,
+  criterion = "cfi",
+  maxIterations = 20,
   tabu.size = 5,
+  negateCriterion = TRUE,
   lavaan.model.specs = list(int.ov.free = TRUE, int.lv.free = FALSE, std.lv = TRUE,
     auto.fix.first = FALSE, auto.fix.single = TRUE, auto.var = TRUE, auto.cov.lv.x =
     TRUE, auto.th = TRUE, auto.delta = TRUE, auto.cov.y = TRUE, ordered = NULL,
     model.type = "cfa", estimator = "default"),
-  bifactor = FALSE,
+  bifactor = NULL,
   verbose = FALSE,
   parallel = T
 )
@@ -61,15 +60,24 @@ neighbors that are 1 move away from the current model.
 <td>
 <p>The initial model (typically the full form) as a character vector with lavaan model.syntax.</p>
 </td></tr>
-<tr><td><code id="numItems">numItems</code></td>
+<tr><td><code id="itemsPerFactor">itemsPerFactor</code></td>
 <td>
 <p>A numeric vector indicating the number of items to retain for each factor.</p>
 </td></tr>
+<tr><td><code id="items">items</code></td>
+<td>
+<p>A 'character' vector of candidate item names. Defaults to
+'NULL', which uses all column names in 'originalData'.</p>
+</td></tr>
 <tr><td><code id="criterion">criterion</code></td>
 <td>
-<p>A function calculating the objective criterion to minimize. Default is to use the built-in 'rmsea' value from 'lavaan::fitmeasures()'.</p>
+<p>The objective to optimize (minimized unless
+'negateCriterion = TRUE'). Either a 'character' fit-measure name
+recognized by fitmeasures (e.g. '&quot;cfi&quot;', the default), or
+a function that takes a fitted 'lavaan' object and returns a single
+numeric value.</p>
 </td></tr>
-<tr><td><code id="niter">niter</code></td>
+<tr><td><code id="maxIterations">maxIterations</code></td>
 <td>
 <p>A numeric value indicating the number of iterations (model specification selections)
 to perform. Default is 50.</p>
@@ -78,15 +86,30 @@ to perform. Default is 50.</p>
 <td>
 <p>A numeric value indicating the size of Tabu list. Default is 5.</p>
 </td></tr>
+<tr><td><code id="negateCriterion">negateCriterion</code></td>
+<td>
+<p>Logical. Should the search look for the smallest
+value of 'criterion' ('FALSE', e.g. chisq or AIC, where smaller is
+better), or the largest ('TRUE', e.g. the default cfi criterion, where
+larger is better)? Default is 'TRUE', matching the default 'criterion'.
+Set to 'FALSE' if you supply a custom 'criterion' that should be
+minimized directly, like the built-in chisq/AIC examples below.</p>
+</td></tr>
 <tr><td><code id="lavaan.model.specs">lavaan.model.specs</code></td>
 <td>
 <p>A list which contains the specifications for the
 lavaan model. The default values are the defaults for lavaan to perform a
-CFA. See lavaan for more details.</p>
+CFA. See lavaan for more details. A partial list is
+accepted &ndash; any element you omit falls back to this function's default
+for that element &ndash; but every name you do supply must match one of the
+recognized element names, or the call errors (this catches typos, e.g.
+'autovar' instead of 'auto.var', instead of silently ignoring them).</p>
 </td></tr>
 <tr><td><code id="bifactor">bifactor</code></td>
 <td>
-<p>Logical. Indicates if the latent model is a bifactor model. If 'TRUE', assumes that the last latent variable in the provided model syntax is the bifactor (i.e., all of the retained items will be set to load on the last latent variable).</p>
+<p>Either the name of the factor that all of the retained
+items will load on (as a 'character' value), or 'NULL' if the model is
+not a bifactor model.</p>
 </td></tr>
 <tr><td><code id="verbose">verbose</code></td>
 <td>
@@ -102,7 +125,9 @@ function will utilize all available cores. Default is <code>TRUE</code>.</p>
 
 <h3>Value</h3>
 
-<p>A named list with the best value of the objective function ('best.obj') and the best lavaan model object ('best.mod').
+<p>An S4 object of class 'TS', with (among other slots) 'best_fit'
+holding the best objective function value achieved and 'best_model' the
+corresponding final lavaan model.
 </p>
 
 
@@ -114,10 +139,10 @@ Ability ~ Outcome
 "
 
 data(simulated_test_data)
-tabuResult &lt;- tabuShortForm(
+tabuResult &lt;- tabuSearch(
   initialModel = shortAntModel,
-  originalData = simulated_test_data, numItems = 7,
-  niter = 1, tabu.size = 3, parallel = FALSE
+  originalData = simulated_test_data, itemsPerFactor = 7,
+  maxIterations = 1, tabu.size = 3, parallel = FALSE
 )
 summary(tabuResult) # shows the resulting model
 ## Not run: 
@@ -182,20 +207,23 @@ tabuCriterion &lt;- function(x) {
   )
 }
 
-# use the tabuShortForm function
+# use the tabuSearch function
 # reduce form to the best 12 items
-tabuShort &lt;- tabuShortForm(
+tabuShort &lt;- tabuSearch(
   initialModel = tabuModel, originalData = tabuData,
-  numItems = c(3, 3, 3, 3),
+  itemsPerFactor = c(3, 3, 3, 3),
   criterion = tabuCriterion,
-  niter = 20, tabu.size = 10
+  # smaller chisq is better, so this should be minimized directly
+  # (unlike the default cfi criterion, which should be maximized)
+  negateCriterion = FALSE,
+  maxIterations = 20, tabu.size = 10
 )
 
 ## End(Not run)
 
 </code></pre>
 
-<hr><div style="text-align: center;">[Package <em>ShortForm</em> version 0.5.8 ]</div></main>
+<hr><div style="text-align: center;">[Package <em>ShortForm</em> version 1.0.0 ]</div></main>
 
 </div>
 </body></html>

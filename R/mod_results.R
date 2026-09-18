@@ -25,9 +25,9 @@
 
 # Map from algorithm display name to help topic (function name in ShortForm).
 .ALGO_HELP_TOPIC <- c(
-  "Ant Colony Optimization" = "antcolony.lavaan",
+  "Ant Colony Optimization" = "antColony",
   "Simulated Annealing"     = "simulatedAnnealing",
-  "Tabu Search"             = "tabuShortForm"
+  "Tabu Search"             = "tabuSearch"
 )
 
 #' Render an S4 ShortForm result object via its show() method
