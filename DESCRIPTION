@@ -21,7 +21,7 @@ Imports:
     readxl,
     sass,
     shiny,
-    ShortForm,
+    ShortForm (>= 1.0.0),
     stringr,
     tools
 Suggests: 
