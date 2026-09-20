@@ -80,13 +80,17 @@ mod_task_runner_server <- function(id, algorithm, args, run_trigger) {
     # Receives plain values only -- no reactives cross the future boundary.
     algorithm_task <- ExtendedTask$new(function(choice, run_args, sim_data, sim_model) {
       future::future({
+        call_env <- list2env(
+          list(sim_data = sim_data, sim_model = sim_model),
+          parent = asNamespace("ShortForm")
+        )
         result <- switch(
           choice,
-          "Ant Colony Optimization" = ShortForm::antColony(
-            data                  = sim_data,
+          "Ant Colony Optimization" = do.call("antColony", list(
+            data                  = quote(sim_data),
             ants                  = run_args$ants,
             evaporation           = run_args$evaporation,
-            initialModel          = sim_model,
+            initialModel          = quote(sim_model),
             itemsPerFactor        = run_args$itemsPerFactor,
             steps                 = run_args$steps,
             pheromone.calculation = run_args$pheromone.calculation,
@@ -94,10 +98,10 @@ mod_task_runner_server <- function(id, algorithm, args, run_trigger) {
             fit.statistics.test   = run_args$fit.statistics.test,
             maxIterations         = run_args$maxIterations,
             parallel              = run_args$parallel
-          ),
-          "Simulated Annealing" = ShortForm::simulatedAnnealing(
-            initialModel       = sim_model,
-            originalData       = sim_data,
+          ), envir = call_env),
+          "Simulated Annealing" = do.call("simulatedAnnealing", list(
+            initialModel       = quote(sim_model),
+            originalData       = quote(sim_data),
             setChains          = run_args$setChains,
             itemsPerFactor     = run_args$itemsPerFactor,
             items              = run_args$items,
@@ -105,16 +109,16 @@ mod_task_runner_server <- function(id, algorithm, args, run_trigger) {
             temperature        = run_args$temperature,
             maxChanges         = run_args$maxChanges,
             parallel           = run_args$parallel
-          ),
-          "Tabu Search" = ShortForm::tabuSearch(
-            originalData       = sim_data,
-            initialModel       = sim_model,
+          ), envir = call_env),
+          "Tabu Search" = do.call("tabuSearch", list(
+            originalData       = quote(sim_data),
+            initialModel       = quote(sim_model),
             itemsPerFactor     = run_args$itemsPerFactor,
             maxIterations      = run_args$maxIterations,
             tabu.size          = run_args$tabu.size,
             lavaan.model.specs = run_args$lavaan.model.specs,
             parallel           = FALSE
-          )
+          ), envir = call_env)
         )
         result
       }, seed = TRUE)
